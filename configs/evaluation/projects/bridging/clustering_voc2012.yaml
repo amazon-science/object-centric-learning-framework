@@ -1,0 +1,25 @@
+# @package _global_
+defaults:
+  - /evaluation_clustering_config
+  - /evaluation/projects/bridging/_base_clustering
+  - /evaluation/projects/bridging/_classes_voc
+  - /evaluation/projects/bridging/_preprocessing_voc2012_trainaug
+  - /dataset: voc2012_trainaug
+  - _self_
+
+batch_size: 1
+n_classes: 20
+ignore_background: false
+use_unmatched_as_background: true
+use_ignore_masks: true
+
+representation_type: RepresentationType.MASK_WEIGHTED_FEATURES
+
+clusterings:
+  kmeans105_l2:
+    _target_: ocl.metrics.SklearnClustering
+    n_clusters: 105
+    method: kmeans
+    use_l2_normalization: true
+    clustering_kwargs:
+      n_init: 20

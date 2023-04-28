@@ -1,0 +1,22 @@
+# Values derived from running `bin/compute_dataset_size.py`
+defaults:
+  - cater
+
+train_size: 11768
+val_size: 1311
+test_size: 5793
+
+train_transforms:
+  01_cater6_subset:
+    _target_: ocl.transforms.Filter
+    predicate: "${lambda_fn:'lambda object_positions: (object_positions != float(\"\
+      inf\")).all((0, 2)).sum().item() < 7'}"
+    fields:
+      - object_positions
+eval_transforms:
+  01_cater6_subset:
+    _target_: ocl.transforms.Filter
+    predicate: "${lambda_fn:'lambda object_positions: (object_positions != float(\"\
+      inf\")).all((0, 2)).sum().item() < 7'}"
+    fields:
+      - object_positions

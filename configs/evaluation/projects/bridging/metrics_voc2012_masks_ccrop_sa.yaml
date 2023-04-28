@@ -1,0 +1,43 @@
+# @package _global_
+# Evaluating center crop mask quality on PASCAL VOC 2012 trainaug validation
+
+defaults:
+  - /evaluation_config
+  - /evaluation/projects/bridging/_base_metrics
+  - /evaluation/projects/bridging/_preprocessing_voc2012_trainaug
+  - /evaluation/projects/bridging/_preprocessing_to_ccrop_320_masks
+  - /evaluation/projects/bridging/_metrics_discovery_masks
+  - /evaluation/projects/bridging/_metrics_segmentation
+  - /evaluation/projects/bridging/_metrics_add_ignore_mask
+  - /dataset: voc2012_trainaug
+  - _self_
+
+eval_batch_size: 16
+
+modules:
+  masks_resized:
+    patch_mode: false
+
+plugins:
+  03b_preprocessing:
+    evaluation_transforms:
+      image:
+        _target_: torchvision.transforms.Compose
+        transforms:
+          - _target_: torchvision.transforms.ToTensor
+          - _target_: torchvision.transforms.Resize
+            size: 128
+            interpolation: ${torchvision_interpolation_mode:BILINEAR}
+          - _target_: torchvision.transforms.CenterCrop
+            size: 128
+          - _target_: torchvision.transforms.Normalize
+            mean: [0.5, 0.5, 0.5]
+            std: [0.5, 0.5, 0.5]
+      ignore_mask:
+        _target_: torchvision.transforms.Compose
+        transforms:
+          - _target_: ocl.preprocessing.DenseMaskToTensor
+          - _target_: ocl.preprocessing.ResizeNearestExact
+            size: 320
+          - _target_: torchvision.transforms.CenterCrop
+            size: 320

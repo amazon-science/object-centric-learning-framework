@@ -1,0 +1,11 @@
+# @package _global_
+# Config file used with eval
+defaults:
+  - /evaluation_config
+  - /evaluation/slate/_base_metrics
+  - /evaluation/slate/_movi_preprocessing
+  - /evaluation/slate/_metrics_discovery_masks
+  - /dataset: movi_c
+  - _self_
+
+eval_batch_size: 1

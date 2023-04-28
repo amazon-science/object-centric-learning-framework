@@ -1,0 +1,67 @@
+# @package _global_
+defaults:
+  - /experiment/projects/bridging/experiment_image_feature_rec/_base
+  - /dataset: coco
+  - /experiment/projects/bridging/experiment_image_feature_rec/_preprocessing_coco_dino_feature_recon
+  - /experiment/projects/bridging/dinosaur/_metrics_coco
+  - _self_
+
+# The following parameters assume training on 8 GPUs, leading to an effective batch size of 64.
+trainer:
+  devices: 8
+  max_steps: 500000
+  max_epochs:
+
+dataset:
+  num_workers: 4
+  batch_size: 8
+
+models:
+  conditioning:
+    _target_: routed.ocl.conditioning.RandomConditioning
+    n_slots: 7
+    object_dim: 256
+    batch_size_path: input.batch_size
+
+  feature_extractor:
+    model_name: resnet34_savi
+    feature_level: 4
+    pretrained: false
+    freeze: false
+
+  feature_extractor_target:
+    _target_: routed.ocl.feature_extractors.TimmFeatureExtractor
+    model_name: vit_base_patch16_224_dino
+    pretrained: ${when_testing:false,true}
+    freeze: true
+    feature_level: 12
+    video_path: input.image
+
+  perceptual_grouping:
+    positional_embedding:
+      _target_: ocl.neural_networks.wrappers.Sequential
+      _args_:
+        - _target_: ocl.neural_networks.positional_embedding.SoftPositionEmbed
+          n_spatial_dims: 2
+          feature_dim: 512
+          savi_style: true
+        - _target_: ocl.neural_networks.build_two_layer_mlp
+          input_dim: 512
+          output_dim: ${models.perceptual_grouping.object_dim}
+          hidden_dim: ${models.perceptual_grouping.object_dim}
+          initial_layer_norm: true
+
+  object_decoder:
+    _target_: routed.ocl.decoding.PatchDecoder
+    object_dim: ${models.perceptual_grouping.object_dim}
+    output_dim: 768
+    num_patches: 196
+    object_features_path: perceptual_grouping.objects
+    target_path: feature_extractor_target.features
+    image_path: input.image
+    decoder:
+      _target_: ocl.neural_networks.build_mlp
+      _partial_: true
+      features: [2048, 2048, 2048]
+experiment:
+  input_feature_dim: 512

@@ -1,0 +1,13 @@
+# @package _global_
+
+hydra:
+  run:
+    dir: "${eval_lambda:'lambda a, b: a if a is not None else b',${output_dir},./outputs/evaluation/metrics/${now:%Y-%m-%d_%H-%M-%S}}"
+
+modules:
+  masks_resized:
+    _target_: routed.ocl.utils.resizing.Resize
+    input_path: object_decoder.masks
+    size_tensor_path: input.segmentation_mask
+    patch_mode: true
+    channels_last: false

@@ -1,0 +1,54 @@
+# @package _global_
+# Evaluating center crop mask quality on PASCAL VOC 2012 trainaug validation
+
+defaults:
+  - /evaluation_config
+  - /evaluation/projects/bridging/_base_metrics
+  - /evaluation/projects/bridging/_preprocessing_voc2012_trainaug
+  - /evaluation/projects/bridging/_preprocessing_to_ccrop_image
+  - /evaluation/projects/bridging/_preprocessing_to_ccrop_320_masks
+  - /evaluation/projects/bridging/_metrics_discovery_masks
+  - /evaluation/projects/bridging/_metrics_segmentation
+  - /evaluation/projects/bridging/_metrics_add_ignore_mask
+  - /dataset: voc2012_trainaug
+  - _self_
+
+eval_batch_size: 16
+
+modules:
+  random_masks:
+    _target_: routed.ocl.utils.masking.CreateRandomMaskPatterns
+    masks_path: masks_resized
+    pattern: blocks
+    n_slots: 11
+    n_cols: 3
+
+evaluation_metrics:
+  instance_mask_ari:
+    prediction_path: random_masks
+  instance_mask_unsup_iou:
+    prediction_path: random_masks
+  instance_mask_abo:
+    prediction_path: random_masks
+  instance_mask_corloc:
+    prediction_path: random_masks
+  instance_mask_recall:
+    prediction_path: random_masks
+  segmentation_mask_ari:
+    prediction_path: random_masks
+  segmentation_mask_unsup_iou:
+    prediction_path: random_masks
+  segmentation_mask_abo:
+    prediction_path: random_masks
+
+plugins:
+  03b_preprocessing:
+    evaluation_transforms:
+      ignore_mask:
+        _target_: torchvision.transforms.Compose
+        transforms:
+          - _target_: ocl.preprocessing.DenseMaskToTensor
+          - _target_: ocl.preprocessing.ResizeNearestExact
+            size: 320
+          - _target_: torchvision.transforms.CenterCrop
+            size: 320

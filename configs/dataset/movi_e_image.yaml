@@ -1,0 +1,29 @@
+# Image dataset containing subsampled frames from MOVI_E dataset.
+defaults:
+  - movi_e
+  - _self_
+
+# Values derived from running `bin/compute_dataset_size.py`.
+train_size: 87741
+val_size: 6000
+test_size: 6000
+
+train_transforms:
+  02_sample_frames:
+    _target_: ocl.transforms.SampleSlices
+    fields:
+      - image
+    n_slices_per_input: 9
+    dim: 0
+    seed: 457834752
+    shuffle_buffer_size: 1000
+eval_transforms:
+  02_sample_frames:
+    _target_: ocl.transforms.SampleSlices
+    fields:
+      - image
+      - mask
+    n_slices_per_input: -1
+    dim: 0
+    seed: 457834753
+    shuffle_buffer_size: 1

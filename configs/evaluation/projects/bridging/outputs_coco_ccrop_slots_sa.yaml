@@ -1,0 +1,131 @@
+# @package _global_
+# Save model predictions on COCO with slot attention models
+defaults:
+  - /evaluation_config
+  - /evaluation/projects/bridging/_base_metrics
+  - /evaluation/projects/bridging/_preprocessing_coco
+  - /dataset: coco
+  - _self_
+
+dataset:
+  shuffle_train: false
+
+  train_transforms:
+    02a_preprocessing:
+      _target_: ocl.transforms.Map
+      transform: "${lambda_fn:'lambda data: {\"orig_image\": data[\"image\"], **data}'}"
+      fields:
+        - image
+      batch_transform: false
+  eval_transforms:
+    02a_preprocessing:
+      _target_: ocl.transforms.Map
+      transform: "${lambda_fn:'lambda data: {\"orig_image\": data[\"image\"], **data}'}"
+      fields:
+        - image
+      batch_transform: false
+eval_batch_size: 1
+
+eval_train: true
+save_outputs: true
+skip_metrics: true
+n_samples_to_store: 11000
+outputs_dirname: slots
+
+outputs_to_store:
+  # - input.orig_image
+  - perceptual_grouping.objects
+  - input.instance_mask
+
+modules:
+  masks_resized:
+    patch_mode: false
+
+plugins:
+  03a_preprocessing:
+    training_fields:
+      - image
+      - instance_mask
+      - instance_category
+    training_transform:
+      _target_: torchvision.transforms.Compose
+      transforms:
+        - _target_: ocl.preprocessing.InstanceMasksToDenseMasks
+        - _target_: ocl.preprocessing.AddSegmentationMaskFromInstanceMask
+        - _target_: ocl.preprocessing.AddEmptyMasks
+          mask_keys:
+            - instance_mask
+            - segmentation_mask
+        - _target_: ocl.preprocessing.DropEntries
+          keys:
+            - instance_category
+    evaluation_fields:
+      - image
+      - instance_mask
+      - instance_category
+    evaluation_transform:
+      _target_: torchvision.transforms.Compose
+      transforms:
+        - _target_: ocl.preprocessing.InstanceMasksToDenseMasks
+        - _target_: ocl.preprocessing.AddSegmentationMaskFromInstanceMask
+        - _target_: ocl.preprocessing.AddEmptyMasks
+          mask_keys:
+            - instance_mask
+            - segmentation_mask
+        - _target_: ocl.preprocessing.DropEntries
+          keys:
+            - instance_category
+
+  03b_preprocessing:
+    training_transforms:
+      orig_image:
+        _target_: torchvision.transforms.Compose
+        transforms:
+          - _target_: torchvision.transforms.ToTensor
+          - _target_: ocl.preprocessing.OrigCenterCrop
+      image:
+        _target_: torchvision.transforms.Compose
+        transforms:
+          - _target_: torchvision.transforms.ToTensor
+          - _target_: torchvision.transforms.Resize
+            size: 128
+            interpolation: ${torchvision_interpolation_mode:BILINEAR}
+          - _target_: torchvision.transforms.CenterCrop
+            size: 128
+          - _target_: torchvision.transforms.Normalize
+            mean: [0.5, 0.5, 0.5]
+            std: [0.5, 0.5, 0.5]
+      instance_mask:
+        _target_: torchvision.transforms.Compose
+        transforms:
+          - _target_: ocl.preprocessing.DenseMaskToTensor
+          - _target_: ocl.preprocessing.ResizeNearestExact
+            size: 224
+          - _target_: torchvision.transforms.CenterCrop
+            size: 224
+    evaluation_transforms:
+      orig_image:
+        _target_: torchvision.transforms.Compose
+        transforms:
+          - _target_: torchvision.transforms.ToTensor
+          - _target_: ocl.preprocessing.OrigCenterCrop
+      image:
+        _target_: torchvision.transforms.Compose
+        transforms:
+          - _target_: torchvision.transforms.ToTensor
+          - _target_: torchvision.transforms.Resize
+            size: 128
+            interpolation: ${torchvision_interpolation_mode:BILINEAR}
+          - _target_: torchvision.transforms.CenterCrop
+            size: 128
+          - _target_: torchvision.transforms.Normalize
+            mean: [0.5, 0.5, 0.5]
+            std: [0.5, 0.5, 0.5]
+      instance_mask:
+        _target_: torchvision.transforms.Compose
+        transforms:
+          - _target_: ocl.preprocessing.DenseMaskToTensor
+          - _target_: ocl.preprocessing.ResizeNearestExact
+            size: 224
+          - _target_: torchvision.transforms.CenterCrop
+            size: 224

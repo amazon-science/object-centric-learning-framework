@@ -1,0 +1,23 @@
+# @package _global_
+# Change eval masks to center crop at 320x320 resolution.
+
+
+plugins:
+  03b_preprocessing:
+    evaluation_transforms:
+      instance_mask:
+        _target_: torchvision.transforms.Compose
+        transforms:
+          - _target_: ocl.preprocessing.DenseMaskToTensor
+          - _target_: ocl.preprocessing.ResizeNearestExact
+            size: 320
+          - _target_: torchvision.transforms.CenterCrop
+            size: 320
+      segmentation_mask:
+        _target_: torchvision.transforms.Compose
+        transforms:
+          - _target_: ocl.preprocessing.DenseMaskToTensor
+          - _target_: ocl.preprocessing.ResizeNearestExact
+            size: 320
+          - _target_: torchvision.transforms.CenterCrop
+            size: 320

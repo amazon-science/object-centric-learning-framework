@@ -1,0 +1,30 @@
+# @package _global_
+# Configuration to exactly reproduce unsupervised object recognition of the original SLATE
+# paper.
+defaults:
+  - /experiment/slate/_base
+  - /dataset: clevr6
+  - /experiment/slate/_clevr_preprocessing
+  - /experiment/slate/_metrics_clevr_patch
+  - _self_
+
+# The following parameters assume training on 8 GPUs, leading to an effective batch size of 64.
+trainer:
+  devices: 8
+  max_steps: 50000
+  max_epochs:
+
+dataset:
+  num_workers: 4
+  batch_size: 9
+
+models:
+  conditioning:
+    n_slots: 11
+
+  masks_as_image:
+    _target_: routed.ocl.utils.resizing.Resize
+    input_path: object_decoder.masks
+    size: 128
+    resize_mode: bilinear
+    patch_mode: true

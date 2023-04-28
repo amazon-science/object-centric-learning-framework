@@ -1,0 +1,15 @@
+# @package hydra
+# Change the output path to reflect the run experiment.
+# Instead of all runs being stored in outputs/<date and time>,
+# they will be in outputs/<experiment>/<date and time>.
+# For example: outputs/slot_attention/clevr6/2023-04-20_09-30-00
+#
+# Additiionally, this config sets the output output_subdir of the hydra
+# config to be `config` instead of `.config`.
+
+run:
+  dir: ${oc.select:experiment.root_output_folder,outputs}/${hydra:runtime.choices.experiment}/${now:%Y-%m-%d_%H-%M-%S}
+sweep:
+  dir: ${oc.select:experiment.root_output_folder,multirun}
+  subdir: ${hydra:runtime.choices.experiment}/${now:%Y-%m-%d_%H-%M-%S}
+output_subdir: config

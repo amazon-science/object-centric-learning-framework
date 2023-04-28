@@ -1,0 +1,16 @@
+# @package _global_
+# Evaluate bounding boxes and masks on COCO-20k at original image resolution.
+defaults:
+  - /evaluation_config
+  - /evaluation/projects/bridging/_base_metrics
+  - /evaluation/projects/bridging/_preprocessing_coco
+  - /evaluation/projects/bridging/_metrics_discovery_masks
+  - /evaluation/projects/bridging/_metrics_discovery_bboxes
+  - /dataset: coco2014_20k
+  - _self_
+
+dataset:
+  train_shards:
+  test_shards:
+
+eval_batch_size: 1

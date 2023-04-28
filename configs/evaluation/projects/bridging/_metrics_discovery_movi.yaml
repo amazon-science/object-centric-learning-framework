@@ -1,0 +1,13 @@
+# @package _global_
+# Metrics for MOVi datasets
+evaluation_metrics:
+  ari:
+    _target_: routed.ocl.metrics.ARIMetric
+    prediction_path: masks_resized
+    target_path: input.mask
+    foreground: true
+  abo:
+    _target_: routed.ocl.metrics.AverageBestOverlapMetric
+    prediction_path: masks_resized
+    target_path: input.mask
+    ignore_background: true

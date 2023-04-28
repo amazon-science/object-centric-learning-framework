@@ -1,0 +1,48 @@
+# @package _global_
+# Configuration to exactly reproduce unsupervised object recognition of the original slot attention
+# paper.
+defaults:
+  - /experiment/slot_attention/_base_optical_flow
+  - /dataset: movi_c_image
+  - /experiment/slot_attention/_preprocessing_movi
+  - _self_
+
+trainer:
+  devices: 8
+  max_steps: 500000
+  max_epochs:
+
+dataset:
+  num_workers: 4
+  batch_size: 8
+  # Additionally sample frames from flow_backward.
+  train_transforms:
+    02_sample_frames:
+      fields: [image, backward_flow]
+    03_preprocessing:
+      transforms:
+        # Addtionally preprocess backward_flow.
+        # TODO(flwenzel): Normalize flow?
+        backward_flow:
+          _target_: torchvision.transforms.Compose
+          transforms:
+            - _target_: ocl.preprocessing.FlowToTensor
+            - _target_: torchvision.transforms.Resize
+              size: 128
+  eval_transforms:
+    02_sample_frames:
+      fields: [image, mask, backward_flow]
+    03_preprocessing:
+      transforms:
+        # Addtionally preprocess backward_flow.
+        backward_flow:
+          _target_: torchvision.transforms.Compose
+          transforms:
+            - _target_: ocl.preprocessing.FlowToTensor
+            - _target_: torchvision.transforms.Resize
+              size: 128
+
+
+models:
+  conditioning:
+    n_slots: 7

@@ -1,0 +1,28 @@
+# @package _global_
+
+# Example showing how to use hyperparameter scheduling capabilities.
+#
+# Based on experiment/slot_attention/clevr10_lds.yaml
+
+defaults:
+  - /experiment/slot_attention/clevr10
+  - _self_
+
+experiment:
+  callbacks:
+    update_hps:
+      _target_: ocl.callbacks.UpdateHyperparameterScheduling
+
+losses:
+  additional_loss:
+    _target_: routed.ocl.losses.ReconstructionLoss
+    loss_type: l1
+    weight:
+      # Linearly ramp up loss weight from 0 to 500, from training step 5000 to 10000
+      _target_: ocl.scheduling.LinearHPScheduler
+      start_value: 0.0
+      end_value: 500.0
+      start_step: 5000
+      end_step: 10000
+    input_path: object_decoder.reconstruction
+    target_path: input.image

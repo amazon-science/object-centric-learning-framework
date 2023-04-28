@@ -1,0 +1,8 @@
+# Define the parameters here, otherwise hydras override syntax gets in the way
+# (i.e. we would need ot use +override in some test contexts).
+_target_: ocl.datasets.DummyDataModule
+batch_size:
+eval_batch_size:
+train_size:
+val_size:
+test_size:

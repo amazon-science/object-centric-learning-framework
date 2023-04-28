@@ -1,0 +1,20 @@
+# @package _global_
+# Configuration to exactly reproduce unsupervised object recognition of the original slot attention
+# paper.
+defaults:
+  - /experiment/slot_attention/_base
+  - /dataset: cater_image
+  - /experiment/slot_attention/_preprocessing_cater
+  - /experiment/slot_attention/_metrics_clevr
+  - _self_
+
+trainer:
+  devices: 8
+  max_steps: 500000
+  max_epochs:
+dataset:
+  num_workers: 4
+  batch_size: 8
+models:
+  conditioning:
+    n_slots: 11

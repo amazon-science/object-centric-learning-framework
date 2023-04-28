@@ -1,0 +1,127 @@
+# @package _global_
+# Default parameters for slot attention.
+defaults:
+  - /experiment/_output_path
+  - /training_config
+  - /dataset: coco
+  - _self_
+
+trainer:
+  max_epochs: 50
+  devices: -1
+
+dataset:
+  num_workers: 4
+  batch_size: 24
+
+  train_transforms:
+    03b_preprocessing:
+      _target_: ocl.transforms.SimpleTransform
+      transforms:
+        image:
+          _target_: torchvision.transforms.Compose
+          transforms:
+            - _target_: torchvision.transforms.ToTensor
+            - _target_: torchvision.transforms.RandomResizedCrop
+              size: 224
+              scale: [0.9, 1.0]
+              interpolation: ${torchvision_interpolation_mode:BICUBIC}
+            - _target_: torchvision.transforms.Normalize
+              mean: [0.48145466, 0.4578275, 0.40821073]
+              std: [0.26862954, 0.26130258, 0.27577711]
+      batch_transform: false
+    03c_preprocessing_1:
+      _target_: ocl.transforms.SimpleTransform
+      transforms:
+        caption:
+          _target_: ocl.preprocessing.RandomSample
+      batch_transform: false
+    03c_preprocessing_2:
+      _target_: ocl.transforms.DuplicateFields
+      mapping:
+        caption: caption_str
+      batch_transform: false
+    03d_preprocessing:
+      _target_: ocl.transforms.SimpleTransform
+      transforms:
+        caption:
+          _target_: ocl.preprocessing.TokenizeText
+      batch_transform: false
+  eval_transforms:
+    03b_preprocessing:
+      _target_: ocl.transforms.SimpleTransform
+      transforms:
+        image:
+          _target_: torchvision.transforms.Compose
+          transforms:
+            - _target_: torchvision.transforms.ToTensor
+            - _target_: torchvision.transforms.Resize
+              size: 224
+              interpolation: ${torchvision_interpolation_mode:BICUBIC}
+            - _target_: torchvision.transforms.CenterCrop
+              size: 224
+            - _target_: torchvision.transforms.Normalize
+              mean: [0.48145466, 0.4578275, 0.40821073]
+              std: [0.26862954, 0.26130258, 0.27577711]
+      batch_transform: false
+    03c_preprocessing_1:
+      _target_: ocl.transforms.SimpleTransform
+      transforms:
+        caption:
+          _target_: ocl.preprocessing.RandomSample
+      batch_transform: false
+    03c_preprocessing_2:
+      _target_: ocl.transforms.DuplicateFields
+      mapping:
+        caption: caption_str
+      batch_transform: false
+    03d_preprocessing:
+      _target_: ocl.transforms.SimpleTransform
+      transforms:
+        caption:
+          _target_: ocl.preprocessing.TokenizeText
+      batch_transform: false
+
+models:
+  image_model:
+    _target_: routed.ocl.feature_extractors.ClipImageModel
+    model_type: RN50
+    video_path: input.image
+  text_model:
+    _target_: routed.ocl.feature_extractors.ClipTextModel
+    model_type: RN50
+    text_path: input.caption
+
+evaluation_metrics: {}
+
+losses:
+  clip:
+    _target_: routed.ocl.losses.CLIPLoss
+    normalize_inputs: true
+    learn_scale: true
+    first_path: image_model.features
+    second_path: text_model
+    model_path: model
+
+visualizations:
+  input:
+    _target_: routed.ocl.visualizations.Image
+    denormalization:
+      _target_: ocl.preprocessing.Denormalize
+      mean: [0.48145466, 0.4578275, 0.40821073]
+      std: [0.26862954, 0.26130258, 0.27577711]
+    image_path: input.image
+  matching:
+    _target_: routed.ocl.visualizations.TextToImageMatching
+    denormalization:
+      _target_: ocl.preprocessing.Denormalize
+      mean: [0.48145466, 0.4578275, 0.40821073]
+      std: [0.26862954, 0.26130258, 0.27577711]
+    image_path: input.image
+    text_path: input.caption_str
+    similarities_path: losses.clip.similarities
+optimizers:
+  opt0:
+    _target_: torch.optim.Adam
+    _partial_: true
+    lr: 1e-5

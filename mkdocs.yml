@@ -1,0 +1,58 @@
+site_name: "Object Centric Learning Framework"
+
+nav:
+  - Overview: index.md
+  - Tutorial:
+     - tutorial/index.md
+     - Installation: tutorial/installation.md
+     - Usage: tutorial/usage.md
+     - Models: tutorial/models.md
+     - Datasets: tutorial/datasets.md
+     - Experiments: tutorial/experiments.md
+     # - Evaluation: tutorial/evaluation.md
+  - Configuration: configs/
+  - Api: api/
+
+theme:
+  name: "material"
+  features:
+    - content.code.annotate
+    - content.code.select
+    - navigation.tabs
+    - navigation.path
+    - navigation.indexes
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+
+plugins:
+- search
+- autorefs
+- gen-files:
+    scripts:
+    - docs/generate_config_docs.py
+    - docs/generate_api_docs.py
+- literate-nav:
+    nav_file: SUMMARY.md
+- mkdocstrings:
+    handlers:
+      python:
+        import:
+         - http://docs.python.org/3/objects.inv
+         - https://pytorch.org/docs/1.13/objects.inv
+         - https://torchmetrics.readthedocs.io/en/stable/objects.inv
+         - https://pytorch.org/data/0.5/objects.inv
+        options:
+          show_signature: false
+
+watch:
+  - ocl
+  - configs

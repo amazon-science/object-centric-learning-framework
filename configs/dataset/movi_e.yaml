@@ -1,0 +1,43 @@
+_target_: ocl.datasets.WebdatasetDataModule
+train_shards: "${oc.env:DATASET_PREFIX}/movi_e/train/shard-{000000..000679}.tar"
+train_size: 9749
+val_shards: "${oc.env:DATASET_PREFIX}/movi_e/val/shard-{000000..000017}.tar"
+val_size: 250
+test_shards: "${oc.env:DATASET_PREFIX}/movi_e/val/shard-{000000..000017}.tar"
+test_size: 250
+use_autopadding: true
+
+eval_transforms:
+  00_1_rename_fields:
+    _target_: ocl.transforms.Map
+    transform:
+      _target_: ocl.preprocessing.RenameFields
+      mapping:
+        video: image
+        segmentations: mask
+    fields: [video, segmentations]
+    # While this could easily be a batch transform,
+    # but many preprocessing steps assume different naming.
+    # Thus apply rename prior to their application.
+    batch_transform: false
+  00_2_adapt_mask_format:
+    _target_: ocl.transforms.SimpleTransform
+    transforms:
+      mask:
+        _target_: ocl.preprocessing.IntegerToOneHotMask
+        output_axis: -4
+        max_instances: 23
+        ignore_typical_background: false
+    batch_transform: false
+train_transforms:
+  00_1_rename_fields:
+    _target_: ocl.transforms.Map
+    transform:
+      _target_: ocl.preprocessing.RenameFields
+      mapping:
+        video: image
+    fields: [video]
+    # While this could easily be a batch transform,
+    # but many preprocessing steps assume different naming.
+    # Thus apply rename prior to their application.
+    batch_transform: false

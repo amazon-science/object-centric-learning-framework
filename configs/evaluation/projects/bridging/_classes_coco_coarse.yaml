@@ -1,0 +1,32 @@
+# @package _global_
+
+class_name_by_category_id:
+  0: unlabeled
+  1: person
+  2: vehicle
+  3: outdoor
+  4: animal
+  5: accessory
+  6: sports
+  7: kitchen
+  8: food
+  9: furniture
+  10: electronic
+  11: appliance
+  12: indoor
+  13: textile
+  14: plant
+  15: building
+  16: furniture-stuff
+  17: structural
+  18: raw-material
+  19: floor
+  20: ceiling
+  21: sky
+  22: ground
+  23: water
+  24: food-stuff
+  25: wall
+  26: window
+  27: solid
+  28: other

@@ -1,0 +1,15 @@
+# @package _global_
+# Evaluate on MOVi-E
+defaults:
+  - /evaluation_config
+  - /evaluation/projects/bridging/_base_metrics
+  - /evaluation/projects/bridging/_preprocessing_movi_e
+  - /evaluation/projects/bridging/_metrics_discovery_movi
+  - /dataset: movi_e_image
+  - _self_
+
+eval_batch_size: 16
+
+modules:
+  masks_resized:
+    size_tensor_path: input.mask

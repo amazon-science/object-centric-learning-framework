@@ -1,0 +1,25 @@
+# @package _global_
+defaults:
+  - /experiment/slot_attention/_base_large
+  - /dataset: voc2012_trainaug
+  - /experiment/slot_attention/_preprocessing_voc2012_trainaug
+  - /experiment/slot_attention/_metrics_coco
+  - _self_
+
+trainer:
+  devices: 8
+  max_steps: 500000
+  max_epochs:
+  gradient_clip_val: 1.0
+  check_val_every_n_epoch: 50
+
+dataset:
+  num_workers: 4
+  batch_size: 8
+
+models:
+  conditioning:
+    _target_: routed.ocl.conditioning.RandomConditioning
+    object_dim: 256
+    n_slots: 7
+    batch_size_path: input.batch_size

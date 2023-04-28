@@ -1,0 +1,63 @@
+# @package _global_
+# Save model predictions on COCO with slot attention models
+dataset:
+  eval_transforms:
+    02a_preprocessing:
+      _target_: ocl.transforms.Map
+      transform: "${lambda_fn:'lambda data: {\"orig_image\": data[\"image\"], **data}'}"
+      fields:
+        - image
+      batch_transform: false
+defaults:
+  - /evaluation_config
+  - /evaluation/projects/bridging/_base_metrics
+  - /evaluation/projects/bridging/_preprocessing_coco
+  - /dataset: coco
+  - _self_
+
+eval_batch_size: 1
+
+save_outputs: true
+skip_metrics: true
+n_samples_to_store: 500
+outputs_to_store:
+  - input.orig_image
+  - input.instance_mask
+  - masks_resized
+  - object_decoder.reconstruction
+
+modules:
+  masks_resized:
+    patch_mode: false
+
+plugins:
+  03b_preprocessing:
+    evaluation_transforms:
+      orig_image:
+        _target_: torchvision.transforms.Compose
+        transforms:
+          - _target_: torchvision.transforms.ToTensor
+          - _target_: ocl.preprocessing.OrigCenterCrop
+      image:
+        _target_: torchvision.transforms.Compose
+        transforms:
+          - _target_: torchvision.transforms.ToTensor
+          - _target_: torchvision.transforms.Resize
+            size: 128
+            interpolation: ${torchvision_interpolation_mode:BILINEAR}
+          - _target_: torchvision.transforms.CenterCrop
+            size: 128
+          - _target_: torchvision.transforms.Normalize
+            mean: [0.5, 0.5, 0.5]
+            std: [0.5, 0.5, 0.5]
+      instance_mask:
+        _target_: torchvision.transforms.Compose
+        transforms:
+          - _target_: ocl.preprocessing.DenseMaskToTensor
+          - _target_: ocl.preprocessing.OrigCenterCrop
+
+      segmentation_mask:
+        _target_: torchvision.transforms.Compose
+        transforms:
+          - _target_: ocl.preprocessing.DenseMaskToTensor
+          - _target_: ocl.preprocessing.OrigCenterCrop

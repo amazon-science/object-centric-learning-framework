@@ -1,0 +1,8 @@
+# Video dataset CLEVRER
+_target_: ocl.datasets.WebdatasetDataModule
+train_shards: "${oc.env:DATASET_PREFIX}/clevrer/train/shard-{000000..000129}.tar"
+train_size: 10000
+val_shards: "${oc.env:DATASET_PREFIX}/clevrer/validation/shard-{000050..000065}.tar"
+val_size: 1163
+test_shards: "${oc.env:DATASET_PREFIX}/clevrer/validation/shard-{000000..000050}.tar"
+test_size: 3915

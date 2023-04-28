@@ -1,0 +1,52 @@
+# @package _global_
+# Save model predictions on VOC 2012 trainval
+dataset:
+  eval_transforms:
+    02b_preprocessing:
+      _target_: ocl.transforms.Map
+      transform: "${lambda_fn:'lambda data: {\"orig_image\": data[\"image\"], **data}'}"
+      fields:
+        - image
+      batch_transform: false
+defaults:
+  - /evaluation_config
+  - /evaluation/projects/bridging/_base_metrics
+  - /evaluation/projects/bridging/_preprocessing_voc2012
+  - /evaluation/projects/bridging/_metrics_discovery_bboxes
+  - /dataset: voc2012_trainval
+  - _self_
+
+eval_batch_size: 1
+
+save_outputs: true
+skip_metrics: true
+n_samples_to_store: 350
+outputs_to_store:
+  - input.orig_image
+  - input.instance_bbox
+  - masks_resized
+
+modules:
+  masks_resized:
+    size_tensor_path: input.orig_image
+
+plugins:
+  03b_preprocessing:
+    evaluation_transforms:
+      orig_image:
+        _target_: torchvision.transforms.Compose
+        transforms:
+          - _target_: torchvision.transforms.ToTensor
+      image:
+        _target_: torchvision.transforms.Compose
+        transforms:
+          - _target_: torchvision.transforms.ToTensor
+          - _target_: torchvision.transforms.Resize
+            size: 224
+            interpolation: ${torchvision_interpolation_mode:BICUBIC}
+          - "${lambda_fn:'lambda image: image.clamp(0.0, 1.0)'}"
+          - _target_: torchvision.transforms.CenterCrop
+            size: 224
+          - _target_: torchvision.transforms.Normalize
+            mean: [0.485, 0.456, 0.406]
+            std: [0.229, 0.224, 0.225]

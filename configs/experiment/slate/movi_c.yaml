@@ -1,0 +1,38 @@
+# @package _global_
+# Configuration to exactly reproduce unsupervised object recognition of the original SLATE
+# paper.
+defaults:
+  - /experiment/slate/_base
+  - /dataset: movi_c_image
+  - /experiment/slate/_movi_preprocessing
+  - /experiment/slate/_metrics_clevr_patch
+  - _self_
+
+trainer:
+  devices: 8
+  max_steps: 200000
+  max_epochs:
+
+dataset:
+  num_workers: 8
+  batch_size: 8
+
+models:
+  conditioning:
+    n_slots: 11
+
+  object_decoder:
+    decoder:
+      n_layers: 8
+      n_heads: 4
+    masks_path: perceptual_grouping.feature_attributions
+
+  perceptual_grouping:
+    iters: 7
+
+  masks_as_image:
+    _target_: routed.ocl.utils.resizing.Resize
+    input_path: object_decoder.masks
+    size: 128
+    resize_mode: bilinear
+    patch_mode: true

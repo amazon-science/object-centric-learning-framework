@@ -1,0 +1,12 @@
+# The COCO20k dataset with instance and caption annotations.
+#
+# COCO 20k is a subset of COCO 2014. It is a random subset of both the training
+# and validation sets, filtered to not contain any images only having crowd instances
+# and no annotations labeled as crowd. It is commonly used to evaluate object
+# discovery methods.
+#
+# This configuration defines COCO20k as a validation set.
+_target_: ocl.datasets.WebdatasetDataModule
+val_shards: "${oc.env:DATASET_PREFIX}/coco2014/20k/shard-{000000..000064}.tar"
+val_size: 19820
+use_autopadding: true

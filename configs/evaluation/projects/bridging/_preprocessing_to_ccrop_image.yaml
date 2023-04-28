@@ -1,0 +1,20 @@
+# @package _global_
+# Change eval image to center crop at 320x320 resolution.
+
+
+plugins:
+  03b_preprocessing:
+    evaluation_transforms:
+      image:
+        _target_: torchvision.transforms.Compose
+        transforms:
+          - _target_: torchvision.transforms.ToTensor
+          - _target_: torchvision.transforms.Resize
+            size: 224
+            interpolation: ${torchvision_interpolation_mode:BICUBIC}
+          - "${lambda_fn:'lambda image: image.clamp(0.0, 1.0)'}"
+          - _target_: torchvision.transforms.CenterCrop
+            size: 224
+          - _target_: torchvision.transforms.Normalize
+            mean: [0.485, 0.456, 0.406]
+            std: [0.229, 0.224, 0.225]

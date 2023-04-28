@@ -1,0 +1,22 @@
+FROM nvidia/cuda:11.6.2-cudnn8-devel-ubuntu20.04
+ENV LANG C.UTF-8
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update -y && \
+    apt-get install python3.8 python3.8-distutils python3.8-venv python3.8-dev build-essential wget git -y && \
+    apt-get clean && rm -rf /tmp/* /var/tmp/* /var/lib/apt/lists/* && apt-get -y autoremove
+
+# Install poetry and fill cache with packages
+RUN wget -O- "https://install.python-poetry.org" | python3.8 - && \
+    echo "export PATH=/root/.local/bin:$PATH" >> /etc/environment
+ENV PATH="/root/.local/bin:$PATH"
+
+# Install dependencies to global venv (ok as we are in a containter).
+# We need to do this as the CI jobs are run in a different dictionary than our docker setup.
+RUN python3.8 -m venv /usr/local/venv
+# We need to update pip to support some more modern python wheels.
+RUN /usr/local/venv/bin/pip install --upgrade pip
+ENV VIRTUAL_ENV="/usr/local/venv" PATH="/usr/local/venv/bin:$PATH"
+COPY pyproject.toml poetry.lock .
+ENV POETRY_VIRTUALENVS_CREATE=false POETRY_VIRTUALENVS_PREFER_ACTIVE_PYTHON=true POETRY_INSTALLER_MODERN_INSTALLATION=false USE_AWS_SDK=false
+
+RUN poetry install -E timm -E clip --no-root

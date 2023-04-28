@@ -1,0 +1,60 @@
+# @package _global_
+# ResNet50 feature reconstruction (ImageNet supervised) on COCO
+defaults:
+  - /experiment/projects/bridging/dinosaur/_base_feature_recon
+  - /dataset: coco
+  - /experiment/projects/bridging/dinosaur/_preprocessing_coco_dino_feature_recon_ccrop
+  - /experiment/projects/bridging/dinosaur/_metrics_coco
+  - _self_
+
+# The following parameters assume training on 8 GPUs, leading to an effective batch size of 64.
+trainer:
+  devices: 8
+  max_steps: 500000
+  max_epochs:
+  gradient_clip_val: 1.0
+
+dataset:
+  num_workers: 4
+  batch_size: 8
+
+experiment:
+  input_feature_dim: 1024
+
+models:
+  conditioning:
+    _target_: routed.ocl.conditioning.RandomConditioning
+    n_slots: 7
+    object_dim: 256
+    batch_size_path: input.batch_size
+
+  feature_extractor:
+    model_name: resnet50
+    feature_level: 3
+    pretrained: ${when_testing:false,true}
+    freeze: true
+
+  perceptual_grouping:
+    feature_dim: ${.object_dim}
+    object_dim: ${models.conditioning.object_dim}
+    use_projection_bias: false
+    positional_embedding:
+      _target_: ocl.neural_networks.wrappers.Sequential
+      _args_:
+        - _target_: ocl.neural_networks.positional_embedding.SoftPositionEmbed
+          n_spatial_dims: 2
+          feature_dim: ${experiment.input_feature_dim}
+          savi_style: true
+        - _target_: ocl.neural_networks.build_two_layer_mlp
+          input_dim: ${experiment.input_feature_dim}
+          output_dim: ${....feature_dim}
+          hidden_dim: ${experiment.input_feature_dim}
+          initial_layer_norm: true
+
+  object_decoder:
+    _target_: routed.ocl.decoding.PatchDecoder
+    decoder:
+      _target_: ocl.neural_networks.build_mlp
+      _partial_: true
+      features: [2048, 2048, 2048]
+    object_features_path: perceptual_grouping.objects

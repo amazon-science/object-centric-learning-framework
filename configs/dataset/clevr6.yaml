@@ -1,0 +1,21 @@
+# Image dataset containing instances from CLEVR with at most 6 objects in each scene.
+defaults:
+  - clevr
+
+# Values derived from running `bin/compute_dataset_size.py`
+train_size: 26240
+val_size: 5553
+test_size: 5600
+
+train_transforms:
+  01_clevr6_subset:
+    _target_: ocl.transforms.Filter
+    predicate: "${lambda_fn:'lambda visibility: visibility.sum().item() < 7'}"
+    fields:
+      - visibility
+eval_transforms:
+  01_clevr6_subset:
+    _target_: ocl.transforms.Filter
+    predicate: "${lambda_fn:'lambda visibility: visibility.sum().item() < 7'}"
+    fields:
+      - visibility

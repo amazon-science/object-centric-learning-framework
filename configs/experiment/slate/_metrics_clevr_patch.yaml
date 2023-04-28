@@ -1,0 +1,11 @@
+# @package _global_
+evaluation_metrics:
+  ari:
+    _target_: routed.ocl.metrics.ARIMetric
+    prediction_path: masks_as_image
+    target_path: input.mask
+  abo:
+    _target_: routed.ocl.metrics.AverageBestOverlapMetric
+    prediction_path: masks_as_image
+    target_path: input.mask
+    ignore_background: true

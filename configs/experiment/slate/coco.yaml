@@ -1,0 +1,21 @@
+# @package _global_
+defaults:
+  - /experiment/slate/_base_large
+  - /dataset: coco
+  - /experiment/slate/_preprocessing_coco
+  - /experiment/slate/_metrics_masks
+  - _self_
+
+trainer:
+  devices: 8
+  max_steps: 250000
+  max_epochs:
+  gradient_clip_val: 1.0
+
+dataset:
+  num_workers: 4
+  batch_size: 8
+
+models:
+  conditioning:
+    n_slots: 11

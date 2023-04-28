@@ -1,0 +1,20 @@
+# @package _global_
+# Add ignore mask to mask metrics
+
+evaluation_metrics:
+  instance_mask_ari:
+    ignore_path: ignore_mask
+  instance_mask_unsup_iou:
+    ignore_path: ignore_mask
+  instance_mask_abo:
+    ignore_path: ignore_mask
+  instance_mask_corloc:
+    ignore_path: ignore_mask
+  instance_mask_recall:
+    ignore_path: ignore_mask
+  segmentation_mask_ari:
+    ignore_path: ignore_mask
+  segmentation_mask_unsup_iou:
+    ignore_path: ignore_mask
+  segmentation_mask_abo:
+    ignore_path: ignore_mask

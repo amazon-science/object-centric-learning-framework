@@ -1,0 +1,38 @@
+# @package _global_
+
+# Example showing how to use optimizers with parameter groups.
+#
+# Parameter groups allow one to use different optimizer settings (e.g. learning rate) for
+# different parts of the model. Parameter groups can be configured in the following way:
+#
+# - "params": One or multiple paths to modules whose parameters should be included in the group.
+# - "predicate": A function that takes in the name and parameter and should return whether that
+#   parameter should be included in the parameter group.
+#
+# Parameters not included in any parameter group will not be passed to the optimizer! Thus take
+# care to include all parts of the model that should be optimized when using parameter groups.
+
+defaults:
+  - /experiment/slot_attention/clevr6
+  - _self_
+
+optimizers:
+  opt0:
+    _target_: ocl.optimization.OptimizationWrapper
+    optimizer:
+      # Settings here will set default values for all parameter groups
+      _target_: torch.optim.Adam
+      _partial_: true
+      lr: 0.0005
+      betas: [0.5, 0.9]
+    parameter_groups:
+      # Optimize feature_extractor, perceptual_grouping, conditioning with lower learning rate
+      - params: [models.feature_extractor, models.perceptual_grouping, models.conditioning]
+        lr: 0.0001
+      # Apply weight decay to object_decoder, but not to bias parameters
+      - params: models.object_decoder
+        predicate: "${lambda_fn:'lambda name, param: \"bias\" not in name'}"
+        weight_decay: 0.5
+      - params: models.object_decoder
+        predicate: "${lambda_fn:'lambda name, param: \"bias\" in name'}"
+        weight_decay: 0.0

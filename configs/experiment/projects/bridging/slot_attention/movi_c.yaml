@@ -1,0 +1,24 @@
+# @package _global_
+defaults:
+  - /experiment/projects/bridging/slot_attention/_base_large
+  - /dataset: movi_c_image
+  - /experiment/projects/bridging/slot_attention/_preprocessing_movi
+  - /experiment/projects/bridging/slot_attention/_metrics_clevr
+  - _self_
+
+trainer:
+  devices: 8
+  max_steps: 500000
+  max_epochs:
+  gradient_clip_val: 1.0
+
+dataset:
+  num_workers: 4
+  batch_size: 8
+
+models:
+  conditioning:
+    _target_: routed.ocl.conditioning.RandomConditioning
+    object_dim: 256
+    n_slots: 11
+    batch_size_path: input.batch_size

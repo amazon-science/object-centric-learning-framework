@@ -1,0 +1,81 @@
+# @package _global_
+dataset:
+  eval_transforms:
+    02a_format_consistency:
+      _target_: ocl.transforms.SimpleTransform
+      transforms:
+      # Convert to one-hot encoding.
+        segmentation-instance:
+          _target_: ocl.preprocessing.IntegerToOneHotMask
+
+      batch_transform: false
+    02b_format_consistency:
+      _target_: ocl.transforms.Map
+      transform:
+        _target_: torchvision.transforms.Compose
+        transforms:
+        # Create segmentation mask.
+          - _target_: ocl.preprocessing.VOCInstanceMasksToDenseMasks
+            instance_mask_key: segmentation-instance
+            class_mask_key: segmentation-class
+            classes_key: instance_category
+          - _target_: ocl.preprocessing.RenameFields
+            mapping:
+              segmentation-instance: instance_mask
+              objects.bbox: instance_bbox
+
+      fields:
+        - segmentation-instance
+        - segmentation-class
+        - objects.bbox
+        - image
+      batch_transform: false
+    03a_preprocessing:
+      _target_: ocl.transforms.Map
+      transform:
+        _target_: torchvision.transforms.Compose
+        transforms:
+          - _target_: ocl.preprocessing.AddSegmentationMaskFromInstanceMask
+          - _target_: ocl.preprocessing.AddEmptyMasks
+            mask_keys:
+              - instance_mask
+              - segmentation_mask
+              - ignore_mask
+          - _target_: ocl.preprocessing.CanonicalizeBboxes
+            format: yxyx
+          - _target_: ocl.preprocessing.RescaleBboxes
+          - _target_: ocl.preprocessing.AddEmptyBboxes
+
+      fields:
+        - image
+        - instance_mask
+        - instance_category
+      batch_transform: false
+    03b_preprocessing:
+      _target_: ocl.transforms.SimpleTransform
+      transforms:
+        image:
+          _target_: torchvision.transforms.Compose
+          transforms:
+            - _target_: torchvision.transforms.ToTensor
+            - _target_: torchvision.transforms.Resize
+              _convert_: all
+              size: [224, 224]
+              interpolation: ${torchvision_interpolation_mode:BICUBIC}
+            - "${lambda_fn:'lambda image: image.clamp(0.0, 1.0)'}"
+            - _target_: torchvision.transforms.Normalize
+              mean: [0.485, 0.456, 0.406]
+              std: [0.229, 0.224, 0.225]
+        instance_mask:
+          _target_: torchvision.transforms.Compose
+          transforms:
+            - _target_: ocl.preprocessing.DenseMaskToTensor
+        segmentation_mask:
+          _target_: torchvision.transforms.Compose
+          transforms:
+            - _target_: ocl.preprocessing.DenseMaskToTensor
+        ignore_mask:
+          _target_: torchvision.transforms.Compose
+          transforms:
+            - _target_: ocl.preprocessing.DenseMaskToTensor
+      batch_transform: false

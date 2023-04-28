@@ -1,0 +1,32 @@
+# @package _global_
+
+# Example showing how slot masking, i.e. how to use slot attention with a variable number of
+# slots per batch-element.
+
+dataset:
+  train_transforms:
+    04_preprocessing:
+      _target_: ocl.transforms.Map
+      transform: "${lambda_fn:'lambda data: {\"n_slots\": 2, **data}'}"
+      fields: []
+      batch_transform: false
+  eval_transforms:
+    04_preprocessing:
+      _target_: ocl.transforms.Map
+      transform: "${lambda_fn:'lambda data: {\"n_slots\": 2, **data}'}"
+      fields: []
+      batch_transform: false
+defaults:
+  - /experiment/slot_attention/clevr6
+  - _self_
+
+models:
+  slot_mask:
+    _target_: routed.ocl.utils.masking.CreateSlotMask
+    max_slots: ${..conditioning.n_slots}
+    n_slots_path: input.n_slots
+
+  perceptual_grouping:
+    slot_mask_path: slot_mask
+    # Replace masked slots with a dummy slot after slot attention
+    use_empty_slot_for_masked_slots: true

@@ -1,0 +1,36 @@
+# @package dataset
+
+# Override parts of preprocessing, imagenet model used different normalization.
+train_transforms:
+  03b_preprocessing:
+    transforms:
+      image:
+        _target_: torchvision.transforms.Compose
+        transforms:
+          - _target_: torchvision.transforms.ToTensor
+          - _target_: torchvision.transforms.Resize
+            size: 224
+            interpolation: ${torchvision_interpolation_mode:BICUBIC}
+          - "${lambda_fn:'lambda image: image.clamp(0.0, 1.0)'}"  # Bicubic interpolation can get out of range
+          - _target_: torchvision.transforms.RandomCrop
+            size: 224
+          - _target_: torchvision.transforms.RandomHorizontalFlip
+          - _target_: torchvision.transforms.Normalize
+            mean: [0.5, 0.5, 0.5]
+            std: [0.5, 0.5, 0.5]
+eval_transforms:
+  03b_preprocessing:
+    transforms:
+      image:
+        _target_: torchvision.transforms.Compose
+        transforms:
+          - _target_: torchvision.transforms.ToTensor
+          - _target_: torchvision.transforms.Resize
+            size: 224
+            interpolation: ${torchvision_interpolation_mode:BICUBIC}
+          - "${lambda_fn:'lambda image: image.clamp(0.0, 1.0)'}"  # Bicubic interpolation can get out of range
+          - _target_: torchvision.transforms.CenterCrop
+            size: 224
+          - _target_: torchvision.transforms.Normalize
+            mean: [0.5, 0.5, 0.5]
+            std: [0.5, 0.5, 0.5]

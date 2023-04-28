@@ -1,0 +1,100 @@
+# @package _global_
+# Default parameters for slot attention.
+
+defaults:
+  - /experiment/_output_path
+  - /training_config
+  - _self_
+
+models:
+  feature_extractor:
+    _target_: routed.ocl.feature_extractors.SlotAttentionFeatureExtractor
+    video_path: input.image
+
+  conditioning:
+    _target_: routed.ocl.conditioning.RandomConditioning
+    object_dim: 64
+    batch_size_path: input.batch_size
+
+  perceptual_grouping:
+    _target_: routed.ocl.perceptual_grouping.SlotAttentionGrouping
+    feature_dim: 64
+    object_dim: ${..conditioning.object_dim}
+    kvq_dim: 128
+    positional_embedding:
+      _target_: ocl.neural_networks.wrappers.Sequential
+      _args_:
+        - _target_: ocl.neural_networks.positional_embedding.SoftPositionEmbed
+          n_spatial_dims: 2
+          feature_dim: 64
+        - _target_: ocl.neural_networks.build_two_layer_mlp
+          input_dim: 64
+          output_dim: 64
+          hidden_dim: 128
+          initial_layer_norm: true
+          residual: false
+    ff_mlp:
+      _target_: ocl.neural_networks.build_two_layer_mlp
+      input_dim: 64
+      output_dim: 64
+      hidden_dim: 128
+      initial_layer_norm: true
+      residual: true
+
+    feature_path: feature_extractor
+    conditioning_path: conditioning
+  object_decoder:
+    _target_: routed.ocl.decoding.SlotAttentionOpticalFlowDecoder
+    object_features_path: perceptual_grouping.objects
+    decoder:
+      _target_: ocl.decoding.get_slotattention_decoder_backbone
+      object_dim: ${models.perceptual_grouping.object_dim}
+      output_dim: 3  # Optical flow dim = 2, alpha mask dim = 1.
+    positional_embedding:
+      _target_: ocl.neural_networks.positional_embedding.SoftPositionEmbed
+      n_spatial_dims: 2
+      feature_dim: ${models.perceptual_grouping.object_dim}
+      cnn_channel_order: true
+
+# TODO(flwenzel): add object masks (also for visualizations).
+evaluation_metrics:
+  ari:
+    _target_: routed.ocl.metrics.ARIMetric
+    prediction_path: object_decoder.masks
+    target_path: input.mask
+
+losses:
+  mse:
+    _target_: routed.ocl.losses.ReconstructionLoss
+    loss_type: mse_sum
+    input_path: object_decoder.predicted_flow
+    target_path: input.backward_flow
+
+visualizations:
+  input:
+    _target_: routed.ocl.visualizations.Image
+    denormalization: "${lambda_fn:'lambda t: t * 0.5 + 0.5'}"
+    image_path: input.image
+  input_flow:
+    _target_: routed.ocl.visualizations.Flow
+    flow_path: input.backward_flow
+  predicted_flow:
+    _target_: routed.ocl.visualizations.Flow
+    flow_path: object_decoder.predicted_flow
+  objects:
+    _target_: routed.ocl.visualizations.VisualObject
+    object_path: object_decoder.object_flows
+    mask_path: object_decoder.masks
+optimizers:
+  opt0:
+    _target_: ocl.optimization.OptimizationWrapper
+    optimizer:
+      _target_: torch.optim.Adam
+      _partial_: true
+      lr: 0.0004
+    lr_scheduler:
+      _target_: ocl.scheduling.exponential_decay_after_optional_warmup
+      _partial_: true
+      decay_rate: 0.5
+      decay_steps: 100000
+      warmup_steps: 10000

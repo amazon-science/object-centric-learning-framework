@@ -1,0 +1,8 @@
+# Image dataset CLEVR based on https://github.com/deepmind/multi_object_datasets .
+_target_: ocl.datasets.WebdatasetDataModule
+train_shards: "${oc.env:DATASET_PREFIX}/clevr_with_masks/train/shard-{000000..000114}.tar"
+train_size: 70000
+val_shards: "${oc.env:DATASET_PREFIX}/clevr_with_masks/val/shard-{000000..000024}.tar"
+val_size: 15000
+test_shards: "${oc.env:DATASET_PREFIX}/clevr_with_masks/test/shard-{000000..000024}.tar"
+test_size: 15000

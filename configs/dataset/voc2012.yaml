@@ -1,0 +1,9 @@
+# The PASCAL VOC 2012 dataset. Does not contain segmentation annotations.
+_target_: ocl.datasets.WebdatasetDataModule
+train_shards: "${oc.env:DATASET_PREFIX}/voc2012_detection/train/shard-{000000..000021}.tar"
+train_size: 5717
+val_shards: "${oc.env:DATASET_PREFIX}/voc2012_detection/val/shard-{000000..000022}.tar"
+val_size: 5823
+test_shards: "${oc.env:DATASET_PREFIX}/voc2012_detection/test/shard-{000000..000041}.tar"
+test_size: 10991
+use_autopadding: true

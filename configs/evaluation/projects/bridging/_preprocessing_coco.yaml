@@ -1,0 +1,54 @@
+# @package _global_
+# Preprocessing for evaluating on COCO with 80 things classes.
+#
+# Masks are in original image resolution.
+dataset:
+  eval_transforms:
+    03a_preprocessing:
+      _target_: ocl.transforms.Map
+      transform:
+        _target_: torchvision.transforms.Compose
+        transforms:
+          - _target_: ocl.preprocessing.InstanceMasksToDenseMasks
+          - _target_: ocl.preprocessing.AddSegmentationMaskFromInstanceMask
+          - _target_: ocl.preprocessing.AddEmptyMasks
+            mask_keys:
+              - instance_mask
+              - segmentation_mask
+          - _target_: ocl.preprocessing.CanonicalizeBboxes
+            format: xywh
+          - _target_: ocl.preprocessing.AddEmptyBboxes
+          - _target_: ocl.preprocessing.DropEntries
+            keys:
+              - instance_category
+
+      fields:
+        - image
+        - instance_mask
+        - instance_category
+        - instance_bbox
+      batch_transform: false
+    03b_preprocessing:
+      _target_: ocl.transforms.SimpleTransform
+      transforms:
+        image:
+          _target_: torchvision.transforms.Compose
+          transforms:
+            - _target_: torchvision.transforms.ToTensor
+            - _target_: torchvision.transforms.Resize
+              _convert_: all
+              size: [224, 224]
+              interpolation: ${torchvision_interpolation_mode:BICUBIC}
+            - "${lambda_fn:'lambda image: image.clamp(0.0, 1.0)'}"
+            - _target_: torchvision.transforms.Normalize
+              mean: [0.485, 0.456, 0.406]
+              std: [0.229, 0.224, 0.225]
+        instance_mask:
+          _target_: torchvision.transforms.Compose
+          transforms:
+            - _target_: ocl.preprocessing.DenseMaskToTensor
+        segmentation_mask:
+          _target_: torchvision.transforms.Compose
+          transforms:
+            - _target_: ocl.preprocessing.DenseMaskToTensor
+      batch_transform: false

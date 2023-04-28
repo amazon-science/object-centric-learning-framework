@@ -1,0 +1,42 @@
+# @package _global_
+dataset:
+  train_transforms:
+    03_preprocessing:
+      _target_: ocl.transforms.SimpleTransform
+      transforms:
+        image:
+          _target_: torchvision.transforms.Compose
+          transforms:
+            - _target_: torchvision.transforms.ToTensor
+            - _target_: torchvision.transforms.CenterCrop
+              size: [192, 192]
+            - _target_: torchvision.transforms.Resize
+              size: 128
+            - _target_: torchvision.transforms.Normalize
+              mean: [0.5, 0.5, 0.5]
+              std: [0.5, 0.5, 0.5]
+      batch_transform: false
+  eval_transforms:
+    03_preprocessing:
+      _target_: ocl.transforms.SimpleTransform
+      transforms:
+        image:
+          _target_: torchvision.transforms.Compose
+          transforms:
+            - _target_: torchvision.transforms.ToTensor
+            - _target_: torchvision.transforms.CenterCrop
+              size: [192, 192]
+            - _target_: torchvision.transforms.Resize
+              size: 128
+            - _target_: torchvision.transforms.Normalize
+              mean: [0.5, 0.5, 0.5]
+              std: [0.5, 0.5, 0.5]
+        mask:
+          _target_: torchvision.transforms.Compose
+          transforms:
+            - _target_: ocl.preprocessing.MaskToTensor
+            - _target_: torchvision.transforms.CenterCrop
+              size: [192, 192]
+            - _target_: ocl.preprocessing.ResizeNearestExact
+              size: 128
+      batch_transform: false

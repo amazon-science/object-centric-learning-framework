@@ -1,0 +1,18 @@
+# @package _global_
+defaults:
+  - override /hydra/launcher: submitit_slurm
+
+trainer:
+  strategy:
+    _target_: pytorch_lightning.plugins.training_type.ddp.DDPPlugin
+    find_unused_parameters: true
+  plugins:
+    - _target_: pytorch_lightning.plugins.environments.SLURMEnvironment
+      auto_requeue: false
+
+hydra:
+  launcher:
+    timeout_min: 0
+    cpus_per_task: 8
+    tasks_per_node: 8
+    gres: gpu:8

@@ -1,0 +1,77 @@
+FROM nvidia/cuda:11.6.2-cudnn8-devel-ubuntu20.04
+ENV LANG C.UTF-8
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update -y && \
+    apt-get install -y \
+    python3 python3-distutils python3-venv python3-dev \
+    yasm pkg-config libx264-dev libx265-dev \
+    git cmake wget build-essential && \
+    apt-get clean && rm -rf /tmp/* /var/tmp/* /var/lib/apt/lists/* && apt-get -y autoremove
+
+# Install poetry and fill cache with packages
+RUN wget -O- "https://install.python-poetry.org" | python3.8 - && \
+    echo "export PATH=/root/.local/bin:$PATH" >> /etc/environment
+ENV PATH="/root/.local/bin:$PATH"
+
+# Install dependencies to global venv (ok as we are in a containter).
+# We need to do this as the CI jobs are run in a different dictionary than our docker setup.
+RUN python3.8 -m venv /usr/local/venv
+# We need to update pip to support some more modern python wheels.
+RUN /usr/local/venv/bin/pip install --upgrade pip
+ENV VIRTUAL_ENV="/usr/local/venv" PATH="/usr/local/venv/bin:$PATH"
+ENV POETRY_VIRTUALENVS_CREATE=false POETRY_VIRTUALENVS_PREFER_ACTIVE_PYTHON=true POETRY_INSTALLER_MODERN_INSTALLATION=false USE_AWS_SDK=false
+
+COPY pyproject.toml poetry.lock .
+RUN poetry install -E timm -E clip --no-root
+# Uninstall decord again, we will be compiling it ourselves.
+RUN rm pyproject.toml poetry.lock && pip uninstall -y decord
+
+# Compile ffmpeg
+RUN mkdir /tmp/build
+WORKDIR /tmp/build
+# Build the most minimal version of ffmpeg that we can use, only the demuxer, nothing else.
+RUN wget -q https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n4.4.2.tar.gz && \
+    tar -xf n4.4.2.tar.gz && rm n4.4.2.tar.gz
+# Minimal set of ffmpeg functionality to work with mp4 files and decord.
+# We might need to extend this to support further data types.
+RUN cd FFmpeg-n4.4.2 && \
+    ./configure \
+      --prefix='/usr/' \
+      --disable-doc \
+      --disable-static \
+      --disable-bsfs \
+      --disable-decoders \
+      --disable-encoders \
+      --disable-devices \
+      --disable-demuxers \
+      --disable-muxers \
+      --disable-parsers \
+      --disable-postproc \
+      --disable-protocols \
+      --enable-bsf=h264_mp4toannexb,hevc_mp4toannexb,mpeg4_unpack_bframes \
+      --enable-demuxer=mov,matroska \
+      --enable-protocol=file \
+      --enable-decoder=h264,hevc \
+      --enable-libx264 --enable-libx265 \
+      --enable-shared \
+      --enable-gpl \
+      --enable-nonfree && \
+    make -j 2 && make install && \
+    cd .. && rm -r FFmpeg-n4.4.2
+
+# Compile decord with GPU support
+ENV NVIDIA_DRIVER_CAPABILITIES=compute,video,utility
+# Install libnvcuvid stub.
+COPY containers/stubs/libnvcuvid.so /usr/local/cuda/lib64/stubs
+
+# Compile Decord and install into environment.
+RUN git clone --recursive https://github.com/dmlc/decord && cd decord &&\
+    git fetch --tags && git checkout v0.6.0
+# Build with some shared libraries missing, as we depend on libnvcuvid which is
+# only provided by the nvidia container runtime at launch.
+RUN mkdir decord/build && cd decord/build && \
+    cmake .. -DUSE_CUDA=ON -DCMAKE_BUILD_TYPE=Release && \
+    make -j 4 && cd ../python && python setup.py install && \
+    cd ../.. && rm -r decord
+WORKDIR /
+RUN rm -r /tmp/build

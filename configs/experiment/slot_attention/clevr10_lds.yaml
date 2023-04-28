@@ -1,0 +1,10 @@
+# @package _global_
+defaults:
+  - /experiment/slot_attention/clevr10
+  - _self_
+
+losses:
+  lds:
+    _target_: routed.ocl.losses.LatentDupplicateSuppressionLoss
+    weight: 500.0
+    grouping_path: perceptual_grouping

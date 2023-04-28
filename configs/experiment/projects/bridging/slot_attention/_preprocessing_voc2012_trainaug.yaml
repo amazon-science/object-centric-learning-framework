@@ -1,0 +1,100 @@
+# @package _global_
+dataset:
+  eval_transforms:
+    02a_format_consistency:
+      _target_: ocl.transforms.SimpleTransform
+      transforms:
+      # Convert to one-hot encoding.
+        segmentation-instance:
+          _target_: ocl.preprocessing.IntegerToOneHotMask
+
+      batch_transform: false
+    02b_format_consistency:
+      _target_: ocl.transforms.Map
+      transform:
+        _target_: torchvision.transforms.Compose
+        transforms:
+        # Create segmentation mask.
+          - _target_: ocl.preprocessing.VOCInstanceMasksToDenseMasks
+            instance_mask_key: segmentation-instance
+            class_mask_key: segmentation-class
+            classes_key: instance_category
+          - _target_: ocl.preprocessing.RenameFields
+            mapping:
+              segmentation-instance: instance_mask
+      fields:
+        - segmentation-instance
+        - segmentation-class
+        - image
+      batch_transform: false
+    03a_preprocessing:
+      _target_: ocl.transforms.Map
+      transform:
+        _target_: torchvision.transforms.Compose
+        transforms:
+        # This is not needed for VOC.
+        # - _target_: ocl.preprocessing.InstanceMasksToDenseMasks
+          - _target_: ocl.preprocessing.AddSegmentationMaskFromInstanceMask
+        # Drop instance_category again as some images do not contain it
+          - "${lambda_fn:'lambda data: {k: v for k, v in data.items() if k != \"instance_category\"\
+            }'}"
+          - _target_: ocl.preprocessing.AddEmptyMasks
+            mask_keys:
+              - instance_mask
+              - segmentation_mask
+
+      fields:
+        - image
+        - instance_mask
+        - instance_category
+      batch_transform: false
+    03b_preprocessing:
+      _target_: ocl.transforms.SimpleTransform
+      transforms:
+        image:
+          _target_: torchvision.transforms.Compose
+          transforms:
+            - _target_: torchvision.transforms.ToTensor
+            - _target_: torchvision.transforms.Resize
+              size: 128
+              interpolation: ${torchvision_interpolation_mode:BILINEAR}
+            - _target_: torchvision.transforms.CenterCrop
+              size: 128
+            - _target_: torchvision.transforms.Normalize
+              mean: [0.5, 0.5, 0.5]
+              std: [0.5, 0.5, 0.5]
+        instance_mask:
+          _target_: torchvision.transforms.Compose
+          transforms:
+            - _target_: ocl.preprocessing.DenseMaskToTensor
+            - _target_: ocl.preprocessing.ResizeNearestExact
+              size: 128
+            - _target_: torchvision.transforms.CenterCrop
+              size: 128
+        segmentation_mask:
+          _target_: torchvision.transforms.Compose
+          transforms:
+            - _target_: ocl.preprocessing.DenseMaskToTensor
+            - _target_: ocl.preprocessing.ResizeNearestExact
+              size: 128
+            - _target_: torchvision.transforms.CenterCrop
+              size: 128
+      batch_transform: false
+  train_transforms:
+    03b_preprocessing:
+      _target_: ocl.transforms.SimpleTransform
+      transforms:
+        image:
+          _target_: torchvision.transforms.Compose
+          transforms:
+            - _target_: torchvision.transforms.ToTensor
+            - _target_: torchvision.transforms.Resize
+              size: 128
+              interpolation: ${torchvision_interpolation_mode:BILINEAR}
+            - _target_: torchvision.transforms.RandomCrop
+              size: 128
+            - _target_: torchvision.transforms.RandomHorizontalFlip
+            - _target_: torchvision.transforms.Normalize
+              mean: [0.5, 0.5, 0.5]
+              std: [0.5, 0.5, 0.5]
+      batch_transform: false

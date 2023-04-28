@@ -1,0 +1,56 @@
+# @package _global_
+# Save model predictions on MOVi datasets with slot attention models
+dataset:
+  eval_transforms:
+    03_preprocessing:
+      _target_: ocl.transforms.Map
+      transform: "${lambda_fn:'lambda data: {\"orig_image\": data[\"image\"], **data}'}"
+      fields:
+        - image
+      batch_transform: false
+    04_preprocessing:
+      _target_: ocl.transforms.SimpleTransform
+      transforms:
+        orig_image:
+          _target_: torchvision.transforms.Compose
+          transforms:
+            - _target_: torchvision.transforms.ToTensor
+        image:
+          _target_: torchvision.transforms.Compose
+          transforms:
+            - _target_: torchvision.transforms.ToTensor
+            - _target_: torchvision.transforms.Resize
+              size: 128
+              interpolation: ${torchvision_interpolation_mode:BILINEAR}
+            - _target_: torchvision.transforms.CenterCrop
+              size: 128
+            - _target_: torchvision.transforms.Normalize
+              mean: [0.5, 0.5, 0.5]
+              std: [0.5, 0.5, 0.5]
+        mask:
+          _target_: torchvision.transforms.Compose
+          transforms:
+            - _target_: ocl.preprocessing.MultiMaskToTensor
+            - _target_: ocl.preprocessing.ResizeNearestExact
+              size: 128
+      batch_transform: false
+defaults:
+  - /evaluation_config
+  - /evaluation/projects/bridging/_base_metrics
+  - /dataset: movi_c_image
+  - _self_
+
+eval_batch_size: 1
+
+save_outputs: true
+skip_metrics: true
+n_samples_to_store: 100
+outputs_to_store:
+  - input.orig_image
+  - input.mask
+  - masks_resized
+
+modules:
+  masks_resized:
+    size_tensor_path: input.mask
+    patch_mode: false

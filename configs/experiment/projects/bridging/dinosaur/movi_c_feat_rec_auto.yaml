@@ -1,0 +1,44 @@
+# @package _global_
+# ViT feature reconstruction on MOVI-C using an autoregressive decoder (SLATE style)
+defaults:
+  - /experiment/projects/bridging/dinosaur/_base_feature_recon
+  - /dataset: movi_c_image
+  - /experiment/projects/bridging/dinosaur/_preprocessing_movi_dino_feature_recon
+  - /experiment/projects/bridging/dinosaur/_metrics_clevr_patch
+  - _self_
+
+# The following parameters assume training on 8 GPUs, leading to an effective batch size of 64.
+trainer:
+  devices: 8
+  max_steps: 500000
+  max_epochs:
+
+dataset:
+  num_workers: 4
+  batch_size: 8
+
+models:
+  conditioning:
+    _target_: routed.ocl.conditioning.RandomConditioning
+    n_slots: 11
+    object_dim: 128
+
+    batch_size_path: input.batch_size
+  object_decoder:
+    _target_: routed.ocl.decoding.AutoregressivePatchDecoder
+    decoder_cond_dim: 384
+    use_input_transform: true
+    decoder:
+      _target_: ocl.neural_networks.build_transformer_decoder
+      _partial_: true
+      n_layers: 4
+      n_heads: 4
+    masks_path: perceptual_grouping.feature_attributions
+
+    object_features_path: perceptual_grouping.objects
+  masks_as_image:
+    _target_: routed.ocl.utils.resizing.Resize
+    input_path: object_decoder.masks
+    size: 128
+    resize_mode: bilinear
+    patch_mode: true

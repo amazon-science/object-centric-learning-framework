@@ -1,0 +1,30 @@
+# @package _global_
+defaults:
+  - /evaluation_clustering_config
+  - /evaluation/projects/bridging/_base_clustering
+  - /evaluation/projects/bridging/_classes_coco
+  - /evaluation/projects/bridging/_preprocessing_coco_things
+  - /dataset: coco_nocrowd
+  - _self_
+
+batch_size: 1
+n_classes: 90
+ignore_background: false
+use_unmatched_as_background: true
+use_ignore_masks: true
+
+train_config_overrides:
+  - models.feature_extractor.aux_features=cls12
+
+features_path: cls12
+
+representation_type: RepresentationType.CLS_ON_MASKED_INPUT
+
+clusterings:
+  kmeans172_l2:
+    _target_: ocl.metrics.SklearnClustering
+    n_clusters: 172
+    method: kmeans
+    use_l2_normalization: true
+    clustering_kwargs:
+      n_init: 20

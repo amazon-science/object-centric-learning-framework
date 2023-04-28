@@ -1,0 +1,30 @@
+# Image dataset containing subsampled frames from CATER dataset.
+defaults:
+  - cater
+
+# Values derived from running `bin/compute_dataset_size.py`.
+train_size: 106281
+val_size: 11811
+test_size: 51300
+
+train_transforms:
+  02_sample_frames:
+    _target_: ocl.transforms.SampleSlices
+    fields:
+      - image
+    n_slices_per_input: 3
+    dim: 0
+    seed: 457834752
+    shuffle_buffer_size: 1000
+eval_transforms:
+  02_sample_frames:
+    _target_: ocl.transforms.SampleSlices
+    fields:
+      - image
+      - mask
+      - camera_matrix
+      - object_positions
+    n_slices_per_input: 3
+    dim: 0
+    seed: 457834753
+    shuffle_buffer_size: 1

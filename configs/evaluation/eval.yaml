@@ -1,0 +1,14 @@
+# @package _global_
+# Config file used with eval
+defaults:
+  - /evaluation_config
+  - _self_
+
+# Setting this allows to add modules to the model that are executed during evaluation
+modules:
+
+# Setting this allows to evaluate on a different dataset than the model was trained on
+dataset:
+
+# Setting this allows to evaluate on different metrics than the model was trained on
+evaluation_metrics:

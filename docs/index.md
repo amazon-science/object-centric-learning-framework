@@ -51,8 +51,9 @@ poetry run ocl_train +experiment=slot_attention/movi_c # Run training exeriment
 
 The output of the training run should be stored at `outputs/slot_attention/movi_c/<timestamp>`.
 
-For a more detailed guide on how to install, setup, and use OCLF check out
-the Tutorial in the docs.
+!!! note
+    For a more detailed guide on how to install, setup, and use OCLF check out
+    the [Tutorial](tutorial/index.md)
 
 
 ## Citation

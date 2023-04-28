@@ -1,0 +1,13 @@
+# @package _global_
+# Evaluating mask quality on PASCAL VOC 2012 trainaug validation at original image resolution.
+defaults:
+  - /evaluation_config
+  - /evaluation/projects/bridging/_base_metrics
+  - /evaluation/projects/bridging/_preprocessing_voc2012_trainaug
+  - /evaluation/projects/bridging/_metrics_discovery_masks
+  - /evaluation/projects/bridging/_metrics_segmentation
+  - /evaluation/projects/bridging/_metrics_add_ignore_mask
+  - /dataset: voc2012_trainaug
+  - _self_
+
+eval_batch_size: 1

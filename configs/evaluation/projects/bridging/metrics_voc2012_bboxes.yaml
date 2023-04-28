@@ -1,0 +1,15 @@
+# @package _global_
+# Evaluating bounding box quality on PASCAL VOC 2012 trainval, commonly used in the unsupervised setting.
+defaults:
+  - /evaluation_config
+  - /evaluation/projects/bridging/_base_metrics
+  - /evaluation/projects/bridging/_preprocessing_voc2012
+  - /evaluation/projects/bridging/_metrics_discovery_bboxes
+  - /dataset: voc2012_trainval
+  - _self_
+
+eval_batch_size: 1
+
+modules:
+  masks_resized:
+    size_tensor_path: input.image_size

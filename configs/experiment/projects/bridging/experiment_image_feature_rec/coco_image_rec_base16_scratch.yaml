@@ -1,0 +1,69 @@
+# @package _global_
+defaults:
+  - /experiment/projects/bridging/experiment_image_feature_rec/_base
+  - /dataset: coco
+  - /experiment/projects/bridging/experiment_image_feature_rec/_preprocessing_coco_dino_image_recon
+  - /experiment/projects/bridging/experiment_image_feature_rec/_metrics_coco_image
+  - _self_
+
+# The following parameters assume training on 8 GPUs, leading to an effective batch size of 64.
+trainer:
+  devices: 8
+  max_steps: 500000
+  max_epochs:
+
+dataset:
+  num_workers: 4
+  batch_size: 8
+
+models:
+  conditioning:
+    _target_: routed.ocl.conditioning.RandomConditioning
+    n_slots: 7
+    object_dim: 256
+
+    batch_size_path: input.batch_size
+  feature_extractor:
+    model_name: vit_base_patch16_224_dino
+    pretrained: false
+    freeze: false
+
+  perceptual_grouping: {}
+  object_decoder:
+    _target_: routed.ocl.decoding.SlotAttentionDecoder
+    final_activation: tanh
+    decoder:
+      _target_: ocl.decoding.get_savi_decoder_backbone
+      object_dim: ${models.perceptual_grouping.object_dim}
+      larger_input_arch: true
+      channel_multiplier: 1
+    positional_embedding:
+      _target_: ocl.neural_networks.positional_embedding.SoftPositionEmbed
+      n_spatial_dims: 2
+      feature_dim: ${models.perceptual_grouping.object_dim}
+      cnn_channel_order: true
+      savi_style: true
+    object_features_path: perceptual_grouping.objects
+
+losses:
+  mse:
+    _target_: routed.ocl.losses.ReconstructionLoss
+    loss_type: mse
+    input_path: object_decoder.reconstruction
+    target_path: input.target
+
+visualizations:
+  reconstruction:
+    _target_: routed.ocl.visualizations.Image
+    denormalization: "${lambda_fn:'lambda t: t * 0.5 + 0.5'}"
+    image_path: object_decoder.reconstruction
+  masks:
+    _target_: routed.ocl.visualizations.Mask
+    mask_path: object_decoder.masks
+  pred_segmentation:
+    _target_: routed.ocl.visualizations.Segmentation
+    denormalization: "${lambda_fn:'lambda t: t * 0.5 + 0.5'}"
+    image_path: input.target
+    mask_path: object_decoder.masks
+experiment:
+  input_feature_dim: 768

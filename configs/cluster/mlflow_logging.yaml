@@ -1,0 +1,27 @@
+# @package _global_
+# Configuration of mlflow logger. This is basic example of the usage.
+
+trainer:
+  # We rely on hydras dir management
+  default_root_dir: .
+  logger:
+    _target_: ocl.utils.logging.ExtendedMLFlowLogger
+    # Override if you want to have a different structure
+    experiment_name: ${slice:${hydra:runtime.choices.experiment},"/",0}
+    run_name: ${slice:${hydra:runtime.choices.experiment},"/","1:"}_${now:%Y-%m-%d_%H-%M-%S}
+
+experiment:
+  callbacks:
+    checkpoint:
+      _target_: pytorch_lightning.callbacks.model_checkpoint.ModelCheckpoint
+    log_hydra_config:
+      _target_: ocl.utils.logging.LogHydraConfigCallback
+      hydra_output_subdir: ${hydra:output_subdir}
+      # Add this in order to track parameters from the hydra config as hyperparameters
+      additional_paths:
+    log_model_summary:
+      _target_: ocl.utils.logging.LogModelSummaryCallback
+
+hydra:
+  job:
+    chdir: true

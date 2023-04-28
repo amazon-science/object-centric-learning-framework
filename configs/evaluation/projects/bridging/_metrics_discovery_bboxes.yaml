@@ -1,0 +1,11 @@
+# @package _global_
+# Metrics for object discovery on COCO/VOC with bounding boxes
+evaluation_metrics:
+  instance_bbox_corloc:
+    _target_: routed.ocl.metrics.BboxCorLocMetric
+    prediction_path: masks_resized
+    target_path: input.instance_bbox
+  instance_bbox_recall:
+    _target_: routed.ocl.metrics.BboxRecallMetric
+    prediction_path: masks_resized
+    target_path: input.instance_bbox
