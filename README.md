@@ -77,8 +77,8 @@ free to add your own experiments via pull requests and to list them below.
 
  * M.Seitzer et al., Bridging the Gap to Real-World Object-Centric Learning
    [![arXiv](https://img.shields.io/badge/arXiv-2209.14860-b31b1b.svg)](https://arxiv.org/abs/2209.14860)
-   [training configurations][bridging-the-gap-to-real-world-object-centric-learning]
-   [evaluation configurations][evaluation-configs-of-bridging-the-gap-to-real-world-object-centric-learning]
+   [training configurations](https://amazon-science.github.io/object-centric-learning-framework/configs/experiment/projects/bridging/)
+   [evaluation configurations](https://amazon-science.github.io/object-centric-learning-framework/configs/evaluation/projects/bridging/)
 
 
 ## License
