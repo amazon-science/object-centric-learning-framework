@@ -1,5 +1,8 @@
 # Object Centric Learning Framework (OCLF)
 
+![linting and testing status](https://github.com/amazon-science/object-centric-learning-framework/actions/workflows/lint_and_test.yaml/badge.svg?branch=main)
+
+
 ## What is OCLF?
 OCLF (Object Centric Learning framework) is a framework designed to ease running
 experiments for object centric learning research, yet is not limited to this

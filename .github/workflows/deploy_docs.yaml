@@ -1,0 +1,24 @@
+name: deploy_docs
+on:
+  push:
+    branches:
+      - main
+permissions:
+  contents: write
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install poetry
+        run: pipx install poetry
+      - name: Setup python and poetry
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.8.16
+          cache: poetry
+          cache-dependency-path: poetry.lock
+      - name: Install dependencies
+        run: poetry install -E timm -E clip --with docs
+      - name: Build and publish docs
+        run: poetry run mkdocs gh-deploy --force

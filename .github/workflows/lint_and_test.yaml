@@ -1,0 +1,33 @@
+name: Lint and Test
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+jobs:
+  lint_and_test:
+    name: lint and test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install poetry
+        run: pipx install poetry
+      - name: Setup python and poetry
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.8.16
+          cache: poetry
+          cache-dependency-path: poetry.lock
+      - name: Install dependencies
+        run: poetry install -E timm -E clip --with docs
+      - name: Lint code
+        run: poetry run pre-commit run --all-files --show-diff-on-failure
+      - name: Run tests
+        run: poetry run pytest -v --runslow -k "not experiment_configs"
+      - name: Check docs
+        run: poetry run mkdocs build --strict --verbose --site-dir test
