@@ -1,6 +1,7 @@
 # Object Centric Learning Framework (OCLF)
 
-![linting and testing status](https://github.com/amazon-science/object-centric-learning-framework/actions/workflows/lint_and_test.yaml/badge.svg?branch=main)
+[![Linting and Testing Status](https://github.com/amazon-science/object-centric-learning-framework/actions/workflows/lint_and_test.yaml/badge.svg?branch=main)](https://github.com/amazon-science/object-centric-learning-framework/actions/workflows/lint_and_test.yaml)
+[![Docs site](https://img.shields.io/badge/docs-GitHub_Pages-blue)](https://amazon-science.github.io/object-centric-learning-framework/)
 
 
 ## What is OCLF?
