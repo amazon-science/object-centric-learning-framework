@@ -66,16 +66,10 @@ DEFAULT_HANDLERS = [NumpyHandler(), JsonHandler(), GzipHandler()]
 class AnnotationAggregator:
     """Class to aggregate COCO annotations from multiple COCO tasks."""
 
-    def __init__(
-        self, instance_annotation: str, stuff_annotation: str, caption_annotation: str
-    ):
-        self.instance_annotation = (
-            COCO(instance_annotation) if instance_annotation else None
-        )
+    def __init__(self, instance_annotation: str, stuff_annotation: str, caption_annotation: str):
+        self.instance_annotation = COCO(instance_annotation) if instance_annotation else None
         self.stuff_annotation = COCO(stuff_annotation) if stuff_annotation else None
-        self.caption_annotation = (
-            COCO(caption_annotation) if caption_annotation else None
-        )
+        self.caption_annotation = COCO(caption_annotation) if caption_annotation else None
         if self.caption_annotation:
             self.image_ids = sorted(list(self.caption_annotation.imgs.keys()))
         if self.instance_annotation:
@@ -126,15 +120,11 @@ class AnnotationAggregator:
             annotations.update(self._get_caption_annotations(image_id))
         if self.instance_annotation:
             annotations.update(
-                self._get_segmentation_annotations(
-                    self.instance_annotation, "instance_", image_id
-                )
+                self._get_segmentation_annotations(self.instance_annotation, "instance_", image_id)
             )
         if self.stuff_annotation:
             annotations.update(
-                self._get_segmentation_annotations(
-                    self.stuff_annotation, "stuff_", image_id
-                )
+                self._get_segmentation_annotations(self.stuff_annotation, "stuff_", image_id)
             )
 
         return filename, annotations
@@ -172,9 +162,7 @@ def main(
     seed: Optional[int] = None,
 ):
     if caption_annotation:
-        annotator = AnnotationAggregator(
-            instance_annotation, stuff_annotation, caption_annotation
-        )
+        annotator = AnnotationAggregator(instance_annotation, stuff_annotation, caption_annotation)
     elif test_annotation:
         annotator = TestAnnotations(test_annotation)
     else:
@@ -200,9 +188,7 @@ def main(
     random.shuffle(image_ids)  # Ensure instances are shuffled.
 
     instance_count = 0
-    with webdataset.ShardWriter(
-        get_shard_pattern(output_path), **shard_writer_params
-    ) as writer:
+    with webdataset.ShardWriter(get_shard_pattern(output_path), **shard_writer_params) as writer:
         for image_id in tqdm.tqdm(image_ids):
             filename, annotations = annotator[image_id]
             if subset_list:
@@ -212,9 +198,7 @@ def main(
                     # Skip samples not in subset list
                     continue
 
-            output = dict(
-                [convert_to_bytes(name, obj) for name, obj in annotations.items()]
-            )
+            output = dict([convert_to_bytes(name, obj) for name, obj in annotations.items()])
             output["__key__"] = str(image_id)
             _, ext = os.path.splitext(filename)
             image_path = os.path.join(dataset_path, filename)
@@ -224,9 +208,7 @@ def main(
             instance_count += 1
     if subset_list is not None and len(subset_list) != 0:
         # We did not process all images in the list.
-        logging.error(
-            f"{len(subset_list)} samples in the subset list where not processed"
-        )
+        logging.error(f"{len(subset_list)} samples in the subset list where not processed")
 
     logging.info(f"Wrote {instance_count} instances.")
 

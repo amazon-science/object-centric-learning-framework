@@ -30,10 +30,7 @@ def determine_dataset_length(records, compression_type=None):
     """
     dataset = tf.data.TFRecordDataset(records, compression_type=compression_type)
     return sum(
-        1
-        for _ in tqdm.tqdm(
-            dataset, desc="Reading dataset for length estimation", unit="instances"
-        )
+        1 for _ in tqdm.tqdm(dataset, desc="Reading dataset for length estimation", unit="instances")
     )
 
 
@@ -52,9 +49,7 @@ def main(
     n_instances=None,
     seed=423234,
 ):
-    dataset_module = importlib.import_module(
-        "multi_object_datasets." + input_dataset_name
-    )
+    dataset_module = importlib.import_module("multi_object_datasets." + input_dataset_name)
     records = tf.io.matching_files(dataset_path)
     if len(records) == 0:
         logging.error(f"No files matching {dataset_path}")
@@ -66,13 +61,9 @@ def main(
         if n_instances:
             dataset_length = n_instances
         else:
-            dataset_length = determine_dataset_length(
-                records, dataset_module.COMPRESSION_TYPE
-            )
+            dataset_length = determine_dataset_length(records, dataset_module.COMPRESSION_TYPE)
         split_indices = create_split_indices(dataset_length, splits, seed)
-        patterns, list_of_indices = make_subdirs_and_patterns(
-            output_path, split_indices
-        )
+        patterns, list_of_indices = make_subdirs_and_patterns(output_path, split_indices)
         for split_name, indices in split_indices.items():
             logging.info(f"Split {split_name} will contain {len(indices)} instances.")
     else:
@@ -91,9 +82,7 @@ def main(
 
     instance_count = 0
     # Create shards of data.
-    with ContextList(
-        webdataset.ShardWriter(p, **shard_writer_params) for p in patterns
-    ) as writers:
+    with ContextList(webdataset.ShardWriter(p, **shard_writer_params) for p in patterns) as writers:
         for index, instance in tqdm.tqdm(enumerate(d), total=dataset_length):
             if dataset_length and index >= dataset_length:
                 logging.warn(
@@ -116,9 +105,7 @@ def main(
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "dataset_name", choices=["clevr_with_masks", "cater_with_masks"]
-    )
+    parser.add_argument("dataset_name", choices=["clevr_with_masks", "cater_with_masks"])
     parser.add_argument("dataset_path", type=str)
     parser.add_argument("output_path", type=str)
     parser.add_argument("--split_names", nargs="+", type=str, default=None)

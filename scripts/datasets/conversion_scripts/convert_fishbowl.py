@@ -69,9 +69,7 @@ def main(
     flow_path = os.path.join(dataset_path, split + "_flow")
     fm_path = os.path.join(dataset_path, split + "_data", split + "_objects")
     elements_in_fm = list(os.listdir(fm_path))
-    video_dirs = [
-        d for d in os.listdir(vm_path) if os.path.isdir(os.path.join(vm_path, d))
-    ]
+    video_dirs = [d for d in os.listdir(vm_path) if os.path.isdir(os.path.join(vm_path, d))]
 
     # too large, use a small subset to train first
     # video_dirs = video_dirs[:200]
@@ -88,13 +86,9 @@ def main(
 
     # Create shards of the data.
     valid_count = 0
-    with ContextList(
-        webdataset.ShardWriter(p, **shard_writer_params) for p in patterns
-    ) as writers:
+    with ContextList(webdataset.ShardWriter(p, **shard_writer_params) for p in patterns) as writers:
         for split_idx, split_name in enumerate(split_names):
-            for _index, scene_dir in tqdm.tqdm(
-                enumerate(video_dirs), total=len(video_dirs)
-            ):
+            for _index, scene_dir in tqdm.tqdm(enumerate(video_dirs), total=len(video_dirs)):
                 print(scene_dir)
                 writer = writers[split_idx]
                 # read all images
@@ -111,9 +105,7 @@ def main(
                     if obj.startswith(scene_dir + "_object"):
                         # Note: object start from channel 1 since in oc-codebase
                         num_obj += 1
-                        obj_data = json.load(
-                            open(os.path.join(fm_path, obj, "objects.json"))
-                        )
+                        obj_data = json.load(open(os.path.join(fm_path, obj, "objects.json")))
                         fish_id = obj_data[0]["id"]
                         id_to_channel_map[fish_id] = num_obj
                         # full masks
@@ -124,9 +116,7 @@ def main(
                         if num_obj >= max_number_of_objects:
                             break
 
-                visible_data = json.load(
-                    open(os.path.join(vm_path, scene_dir, "objects.json"))
-                )
+                visible_data = json.load(open(os.path.join(vm_path, scene_dir, "objects.json")))
 
                 for i in range(len(visible_data)):
                     fish_id = visible_data[i]["id"]
@@ -135,18 +125,10 @@ def main(
                     vm_array[:, obj_channel, :, :] = visible_bms
 
                 output = {
-                    "video.mp4": get_bytes(
-                        os.path.join(vm_path, scene_dir, "video.mp4")
-                    ),
-                    "vm_mask.npy.gz": get_numpy_compressed_bytes(
-                        compress_mask(vm_array)
-                    ),
-                    "fm_mask.npy.gz": get_numpy_compressed_bytes(
-                        compress_mask(fm_array)
-                    ),
-                    "flow.mp4": get_bytes(
-                        os.path.join(flow_path, f"{scene_dir}.flow.mp4")
-                    ),
+                    "video.mp4": get_bytes(os.path.join(vm_path, scene_dir, "video.mp4")),
+                    "vm_mask.npy.gz": get_numpy_compressed_bytes(compress_mask(vm_array)),
+                    "fm_mask.npy.gz": get_numpy_compressed_bytes(compress_mask(fm_array)),
+                    "flow.mp4": get_bytes(os.path.join(flow_path, f"{scene_dir}.flow.mp4")),
                 }
                 output["__key__"] = scene_dir
                 writer.write(output)

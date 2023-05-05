@@ -73,8 +73,8 @@ _VOC_SEGMENTATION_CONFIG_DESCRIPTION_COMMON = """\
 This config contains the data from the VOC{year} Segmentation competition. A
 total of {num_images} images are included.
 """
-_VOC_SEGMENTATION_CONFIG_DESCRIPTION_2007 = (
-    _VOC_SEGMENTATION_CONFIG_DESCRIPTION_COMMON.format(year=2007, num_images=632)
+_VOC_SEGMENTATION_CONFIG_DESCRIPTION_2007 = _VOC_SEGMENTATION_CONFIG_DESCRIPTION_COMMON.format(
+    year=2007, num_images=632
 )
 _VOC_SEGMENTATION_CONFIG_DESCRIPTION_2012 = (
     _VOC_SEGMENTATION_CONFIG_DESCRIPTION_COMMON.format(year=2012, num_images=12031)
@@ -158,9 +158,7 @@ def _get_detection_objects(annotation_filepath):
             yield {
                 "label": label,
                 "pose": pose,
-                "bbox": tfds.features.BBox(
-                    ymin / height, xmin / width, ymax / height, xmax / width
-                ),
+                "bbox": tfds.features.BBox(ymin / height, xmin / width, ymax / height, xmax / width),
                 "is_truncated": is_truncated,
                 "is_difficult": is_difficult,
             }
@@ -173,9 +171,9 @@ class VocPath:
         self.relative_path = relative_path
 
     def resolve(self, paths, example_id):
-        return os.path.join(
-            paths[self.filename], os.path.normpath(self.relative_path)
-        ).format(example_id)
+        return os.path.join(paths[self.filename], os.path.normpath(self.relative_path)).format(
+            example_id
+        )
 
 
 class DetectionExampleBuilder:
@@ -183,13 +181,9 @@ class DetectionExampleBuilder:
 
     def __init__(self, year=None, filename=None, image_path=None, annotation_path=None):
         if image_path is None:
-            image_path = VocPath(
-                filename, "VOCdevkit/VOC{}/JPEGImages/{{}}.jpg".format(year)
-            )
+            image_path = VocPath(filename, "VOCdevkit/VOC{}/JPEGImages/{{}}.jpg".format(year))
         if annotation_path is None:
-            annotation_path = VocPath(
-                filename, "VOCdevkit/VOC{}/Annotations/{{}}.xml".format(year)
-            )
+            annotation_path = VocPath(filename, "VOCdevkit/VOC{}/Annotations/{{}}.xml".format(year))
         self.image_path = image_path
         self.annotation_path = annotation_path
 
@@ -280,9 +274,7 @@ class IDGenerator:
         self.image_set_relative_path = image_set_relative_path
 
     def generate(self, paths):
-        image_set_path = os.path.join(
-            paths[self.filename], self.image_set_relative_path
-        )
+        image_set_path = os.path.join(paths[self.filename], self.image_set_relative_path)
         with tf.io.gfile.GFile(image_set_path, "r") as f:
             for line in f:
                 yield line.strip()
@@ -293,9 +285,7 @@ class SplitConfig:
         self.name = name
         self.id_generator = id_generator
         self.example_builder = example_builder
-        self.exclude_id_generators = (
-            exclude_id_generators if exclude_id_generators else []
-        )
+        self.exclude_id_generators = exclude_id_generators if exclude_id_generators else []
 
 
 class VocConfig(tfds.core.BuilderConfig):
@@ -317,9 +307,7 @@ class VocConfig(tfds.core.BuilderConfig):
             }
         if year == 2012 and has_segmentation:
             self.citation += _SBD_CITATION
-            self.filenames["sbd"] = os.path.join(
-                _SBD_DATA_URL, "semantic_contours/benchmark.tgz"
-            )
+            self.filenames["sbd"] = os.path.join(_SBD_DATA_URL, "semantic_contours/benchmark.tgz")
         self.splits = splits
         super().__init__(
             # Version history:
@@ -329,7 +317,7 @@ class VocConfig(tfds.core.BuilderConfig):
             # 2.0.0: S3 (new shuffling, sharding and slicing mechanism).
             name=str(year) + ("-segmentation" if has_segmentation else ""),
             version=tfds.core.Version("5.0.0"),
-            **kwargs
+            **kwargs,
         )
 
     @property
@@ -346,9 +334,7 @@ class VocConfig(tfds.core.BuilderConfig):
                     "is_difficult": tf.bool,
                 }
             ),
-            "labels": tfds.features.Sequence(
-                tfds.features.ClassLabel(names=_VOC_LABELS)
-            ),
+            "labels": tfds.features.Sequence(tfds.features.ClassLabel(names=_VOC_LABELS)),
             "labels_no_difficult": tfds.features.Sequence(
                 tfds.features.ClassLabel(names=_VOC_LABELS)
             ),
@@ -356,9 +342,7 @@ class VocConfig(tfds.core.BuilderConfig):
         if self.has_segmentation:
             features.update(
                 {
-                    "segmentation/class": tfds.features.Image(
-                        shape=(None, None, 1), dtype=tf.uint8
-                    ),
+                    "segmentation/class": tfds.features.Image(shape=(None, None, 1), dtype=tf.uint8),
                     "segmentation/instance": tfds.features.Image(
                         shape=(None, None, 1), dtype=tf.uint8
                     ),
@@ -383,24 +367,16 @@ class ExtendedVoc(tfds.core.GeneratorBasedBuilder):
                     id_generator=IDGenerator(
                         "trainval", "VOCdevkit/VOC2007/ImageSets/Main/train.txt"
                     ),
-                    example_builder=DetectionExampleBuilder(
-                        year=2007, filename="trainval"
-                    ),
+                    example_builder=DetectionExampleBuilder(year=2007, filename="trainval"),
                 ),
                 SplitConfig(
                     name=tfds.Split.VALIDATION,
-                    id_generator=IDGenerator(
-                        "trainval", "VOCdevkit/VOC2007/ImageSets/Main/val.txt"
-                    ),
-                    example_builder=DetectionExampleBuilder(
-                        year=2007, filename="trainval"
-                    ),
+                    id_generator=IDGenerator("trainval", "VOCdevkit/VOC2007/ImageSets/Main/val.txt"),
+                    example_builder=DetectionExampleBuilder(year=2007, filename="trainval"),
                 ),
                 SplitConfig(
                     name=tfds.Split.TEST,
-                    id_generator=IDGenerator(
-                        "test", "VOCdevkit/VOC2007/ImageSets/Main/test.txt"
-                    ),
+                    id_generator=IDGenerator("test", "VOCdevkit/VOC2007/ImageSets/Main/test.txt"),
                     example_builder=DetectionExampleBuilder(year=2007, filename="test"),
                 ),
             ],
@@ -417,24 +393,16 @@ class ExtendedVoc(tfds.core.GeneratorBasedBuilder):
                     id_generator=IDGenerator(
                         "trainval", "VOCdevkit/VOC2012/ImageSets/Main/train.txt"
                     ),
-                    example_builder=DetectionExampleBuilder(
-                        year=2012, filename="trainval"
-                    ),
+                    example_builder=DetectionExampleBuilder(year=2012, filename="trainval"),
                 ),
                 SplitConfig(
                     name=tfds.Split.VALIDATION,
-                    id_generator=IDGenerator(
-                        "trainval", "VOCdevkit/VOC2012/ImageSets/Main/val.txt"
-                    ),
-                    example_builder=DetectionExampleBuilder(
-                        year=2012, filename="trainval"
-                    ),
+                    id_generator=IDGenerator("trainval", "VOCdevkit/VOC2012/ImageSets/Main/val.txt"),
+                    example_builder=DetectionExampleBuilder(year=2012, filename="trainval"),
                 ),
                 SplitConfig(
                     name=tfds.Split.TEST,
-                    id_generator=IDGenerator(
-                        "test", "VOCdevkit/VOC2012/ImageSets/Main/test.txt"
-                    ),
+                    id_generator=IDGenerator("test", "VOCdevkit/VOC2012/ImageSets/Main/test.txt"),
                     # We pass `False` as the `annotation_path` because VOC2012 has
                     # no test annotations (`None` is used for the default).
                     example_builder=DetectionExampleBuilder(
@@ -453,27 +421,21 @@ class ExtendedVoc(tfds.core.GeneratorBasedBuilder):
                     id_generator=IDGenerator(
                         "trainval", "VOCdevkit/VOC2007/ImageSets/Segmentation/train.txt"
                     ),
-                    example_builder=SegmentationExampleBuilder(
-                        year=2007, filename="trainval"
-                    ),
+                    example_builder=SegmentationExampleBuilder(year=2007, filename="trainval"),
                 ),
                 SplitConfig(
                     name=tfds.Split.VALIDATION,
                     id_generator=IDGenerator(
                         "trainval", "VOCdevkit/VOC2007/ImageSets/Segmentation/val.txt"
                     ),
-                    example_builder=SegmentationExampleBuilder(
-                        year=2007, filename="trainval"
-                    ),
+                    example_builder=SegmentationExampleBuilder(year=2007, filename="trainval"),
                 ),
                 SplitConfig(
                     name=tfds.Split.TEST,
                     id_generator=IDGenerator(
                         "test", "VOCdevkit/VOC2007/ImageSets/Segmentation/test.txt"
                     ),
-                    example_builder=SegmentationExampleBuilder(
-                        year=2007, filename="test"
-                    ),
+                    example_builder=SegmentationExampleBuilder(year=2007, filename="test"),
                 ),
             ],
         ),
@@ -487,24 +449,18 @@ class ExtendedVoc(tfds.core.GeneratorBasedBuilder):
                     id_generator=IDGenerator(
                         "trainval", "VOCdevkit/VOC2012/ImageSets/Segmentation/train.txt"
                     ),
-                    example_builder=SegmentationExampleBuilder(
-                        year=2012, filename="trainval"
-                    ),
+                    example_builder=SegmentationExampleBuilder(year=2012, filename="trainval"),
                 ),
                 SplitConfig(
                     name=tfds.Split.VALIDATION,
                     id_generator=IDGenerator(
                         "trainval", "VOCdevkit/VOC2012/ImageSets/Segmentation/val.txt"
                     ),
-                    example_builder=SegmentationExampleBuilder(
-                        year=2012, filename="trainval"
-                    ),
+                    example_builder=SegmentationExampleBuilder(year=2012, filename="trainval"),
                 ),
                 SplitConfig(
                     name="sbd_train",
-                    id_generator=IDGenerator(
-                        "sbd", "benchmark_RELEASE/dataset/train.txt"
-                    ),
+                    id_generator=IDGenerator("sbd", "benchmark_RELEASE/dataset/train.txt"),
                     exclude_id_generators=[
                         IDGenerator(
                             "trainval",
@@ -518,19 +474,13 @@ class ExtendedVoc(tfds.core.GeneratorBasedBuilder):
                     example_builder=SegmentationExampleBuilder(
                         year=2012,
                         filename="trainval",
-                        class_mask_path=VocPath(
-                            "sbd", "benchmark_RELEASE/dataset/cls/{}.mat"
-                        ),
-                        instance_mask_path=VocPath(
-                            "sbd", "benchmark_RELEASE/dataset/inst/{}.mat"
-                        ),
+                        class_mask_path=VocPath("sbd", "benchmark_RELEASE/dataset/cls/{}.mat"),
+                        instance_mask_path=VocPath("sbd", "benchmark_RELEASE/dataset/inst/{}.mat"),
                     ),
                 ),
                 SplitConfig(
                     name="sbd_validation",
-                    id_generator=IDGenerator(
-                        "sbd", "benchmark_RELEASE/dataset/val.txt"
-                    ),
+                    id_generator=IDGenerator("sbd", "benchmark_RELEASE/dataset/val.txt"),
                     exclude_id_generators=[
                         IDGenerator(
                             "trainval",
@@ -544,12 +494,8 @@ class ExtendedVoc(tfds.core.GeneratorBasedBuilder):
                     example_builder=SegmentationExampleBuilder(
                         year=2012,
                         filename="trainval",
-                        class_mask_path=VocPath(
-                            "sbd", "benchmark_RELEASE/dataset/cls/{}.mat"
-                        ),
-                        instance_mask_path=VocPath(
-                            "sbd", "benchmark_RELEASE/dataset/inst/{}.mat"
-                        ),
+                        class_mask_path=VocPath("sbd", "benchmark_RELEASE/dataset/cls/{}.mat"),
+                        instance_mask_path=VocPath("sbd", "benchmark_RELEASE/dataset/inst/{}.mat"),
                     ),
                 ),
             ],
@@ -581,9 +527,7 @@ class ExtendedVoc(tfds.core.GeneratorBasedBuilder):
             for split in self.builder_config.splits
         ]
 
-    def _generate_examples(
-        self, paths, id_generator, exclude_id_generators, example_builder
-    ):
+    def _generate_examples(self, paths, id_generator, exclude_id_generators, example_builder):
         """Yields examples."""
         exclude_ids = set(
             example_id

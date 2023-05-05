@@ -145,9 +145,7 @@ def main(
     output_path,
     dataset_path=None,
 ):
-    dataset, info = tfds.load(
-        tfds_spec, split=split_spec, with_info=True, data_dir=dataset_path
-    )
+    dataset, info = tfds.load(tfds_spec, split=split_spec, with_info=True, data_dir=dataset_path)
     shard_writer_params = {
         "maxsize": 100 * 1024 * 1024,  # 100 MB
         "maxcount": 5000,
@@ -156,9 +154,7 @@ def main(
     }
     feature_info = info.features
 
-    with webdataset.ShardWriter(
-        get_shard_pattern(output_path), **shard_writer_params
-    ) as writer:
+    with webdataset.ShardWriter(get_shard_pattern(output_path), **shard_writer_params) as writer:
         for i, instance in tqdm.tqdm(
             enumerate(dataset), total=len(dataset), desc=f"Processing {split_spec}"
         ):

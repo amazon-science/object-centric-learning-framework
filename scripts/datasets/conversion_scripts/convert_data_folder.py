@@ -43,9 +43,7 @@ def determine_dataset_length(base_names, files):
 def parse_datafolder(dataset_path):
     """Assumed file name structure, for example: base_name_0000000.npy.gz."""
     files = os.listdir(dataset_path)
-    base_names = set(
-        [("_".join(f.split("_")[:-1]), ".".join(f.split(".")[1:])) for f in files]
-    )
+    base_names = set([("_".join(f.split("_")[:-1]), ".".join(f.split(".")[1:])) for f in files])
     indices = set([int(f.split(".")[0].split("_")[-1]) for f in files])
     return base_names, indices, files
 
@@ -65,9 +63,7 @@ def main(dataset_path, output_path, splits=None, n_instances=None, seed=423234):
         else:
             dataset_length = determine_dataset_length(base_names, files)
         split_indices = create_split_indices(dataset_length, splits, seed)
-        patterns, list_of_indices = make_subdirs_and_patterns(
-            output_path, split_indices
-        )
+        patterns, list_of_indices = make_subdirs_and_patterns(output_path, split_indices)
         for split_name, indices in split_indices.items():
             logging.info(f"Split {split_name} will contain {len(indices)} instances.")
     else:
@@ -86,12 +82,8 @@ def main(dataset_path, output_path, splits=None, n_instances=None, seed=423234):
 
     instance_count = 0
     # Create shards of data.
-    with ContextList(
-        webdataset.ShardWriter(p, **shard_writer_params) for p in patterns
-    ) as writers:
-        for index, instance_idx in tqdm.tqdm(
-            enumerate(data_indices), total=dataset_length
-        ):
+    with ContextList(webdataset.ShardWriter(p, **shard_writer_params) for p in patterns) as writers:
+        for index, instance_idx in tqdm.tqdm(enumerate(data_indices), total=dataset_length):
             instance = {
                 f"{base_name[0]}.{base_name[1]}": read_file(
                     os.path.join(
