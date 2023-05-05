@@ -55,9 +55,7 @@ class AddBBoxFromInstanceMasks:
         binary_mask = binary_mask[:, 1:]
         num_instance -= 1
         binary_mask = (
-            torch.tensor(binary_mask)
-            .squeeze()
-            .view(num_frame * num_instance, height, width)
+            torch.tensor(binary_mask).squeeze().view(num_frame * num_instance, height, width)
         )
         # Filter empty masks
         non_empty_mask_idx = torch.where(binary_mask.sum(-1).sum(-1) > 0)[0]
@@ -79,19 +77,13 @@ class AddBBoxFromInstanceMasks:
         # -1 is background or no object, 0 is the first object class
         instance_cls = torch.ones(num_frame * num_instance, 1) * -1
         instance_cls[non_empty_mask_idx] = 0
-        instance_cls = (
-            instance_cls.view(num_frame, num_instance, 1).squeeze(-1).to(torch.long)
-        )
+        instance_cls = instance_cls.view(num_frame, num_instance, 1).squeeze(-1).to(torch.long)
 
         # ID
-        instance_id = torch.range(0, num_instance - 1)[None, :, None].repeat(
-            num_frame, 1, 1
-        )
+        instance_id = torch.range(0, num_instance - 1)[None, :, None].repeat(num_frame, 1, 1)
         instance_id = instance_id.view(num_frame * num_instance, 1)
         instance_id[empty_mask_idx] = -1
-        instance_id = (
-            instance_id.view(num_frame, num_instance, 1).squeeze(-1).to(torch.long)
-        )
+        instance_id = instance_id.view(num_frame, num_instance, 1).squeeze(-1).to(torch.long)
 
         return bboxes, instance_cls, instance_id
 
@@ -152,9 +144,7 @@ def main(
     uniq_val = None
     # Create shards of the data.
     valid_count = 0
-    with ContextList(
-        webdataset.ShardWriter(p, **shard_writer_params) for p in patterns
-    ) as writers:
+    with ContextList(webdataset.ShardWriter(p, **shard_writer_params) for p in patterns) as writers:
         for split_idx, split_name in enumerate(split_names):
             for index, scene_dir in tqdm.tqdm(enumerate(dir_list), total=len(dir_list)):
                 writer = writers[split_idx]
@@ -185,11 +175,7 @@ def main(
                 )
 
                 # read_all_mask
-                filelist = [
-                    val
-                    for val in os.listdir(scene_dir)
-                    if val.startswith("segmentation")
-                ]
+                filelist = [val for val in os.listdir(scene_dir) if val.startswith("segmentation")]
                 filelist = sorted(
                     filelist,
                     key=lambda x: int(x.split("_")[1].split(".")[0]),
@@ -207,21 +193,15 @@ def main(
                     dtype=np.uint8,
                 )
                 for fidx, f in enumerate(filelist):
-                    mask_img = np.array(
-                        imageio.imread(os.path.join(scene_dir, f))
-                    ).astype(np.int64)
+                    mask_img = np.array(imageio.imread(os.path.join(scene_dir, f))).astype(np.int64)
                     uniq_rgb_mask = (
-                        mask_img[:, :, 0] * 256 * 256
-                        + mask_img[:, :, 1] * 256
-                        + mask_img[:, :, 2]
+                        mask_img[:, :, 0] * 256 * 256 + mask_img[:, :, 1] * 256 + mask_img[:, :, 2]
                     )
                     # We assume the color means ID and won't change
                     if uniq_val is None:
                         uniq_val = np.sort(np.unique(uniq_rgb_mask))[1:]
                     for i in range(uniq_val.shape[0]):
-                        one_hot_masks[fidx, i + 1] = (
-                            uniq_rgb_mask == uniq_val[i]
-                        ).astype(np.uint8)
+                        one_hot_masks[fidx, i + 1] = (uniq_rgb_mask == uniq_val[i]).astype(np.uint8)
 
                 one_hot_masks = np.expand_dims(one_hot_masks, axis=-1)
                 # print (one_hot_masks.shape)

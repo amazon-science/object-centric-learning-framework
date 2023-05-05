@@ -43,9 +43,7 @@ def main(video_dir, annotation_dir, output_dir):
     for annotation_subdir in os.listdir(annotation_dir):
         # catch hidden subdirs
         if not annotation_subdir.startswith("."):
-            for annotation_fname in os.listdir(
-                os.path.join(annotation_dir, annotation_subdir)
-            ):
+            for annotation_fname in os.listdir(os.path.join(annotation_dir, annotation_subdir)):
                 # store full paths of annotation files
                 annotation_fnames.append(
                     os.path.join(annotation_dir, annotation_subdir, annotation_fname)
@@ -57,27 +55,19 @@ def main(video_dir, annotation_dir, output_dir):
     video_ids = [int(video_fname.split("/")[-1][6:11]) for video_fname in video_fnames]
     # annotation_fname format -> ../../.../../annotation_10000.json -> ID: 10000
     annotation_ids = [
-        int(annotation_fname.split("/")[-1][11:16])
-        for annotation_fname in annotation_fnames
+        int(annotation_fname.split("/")[-1][11:16]) for annotation_fname in annotation_fnames
     ]
     # Sort based on Terminal IDs for videos & annotations
     sorted_v_ids_idxs = sorted(range(len(video_ids)), key=lambda k: video_ids[k])
-    sorted_a_ids_idxs = sorted(
-        range(len(annotation_ids)), key=lambda k: annotation_ids[k]
-    )
+    sorted_a_ids_idxs = sorted(range(len(annotation_ids)), key=lambda k: annotation_ids[k])
     # Permute elements of both lists using sorted idxs
-    sorted_video_fnames = [
-        video_fnames[sorted_v_ids_idx] for sorted_v_ids_idx in sorted_v_ids_idxs
-    ]
+    sorted_video_fnames = [video_fnames[sorted_v_ids_idx] for sorted_v_ids_idx in sorted_v_ids_idxs]
     sorted_annotation_fnames = [
         annotation_fnames[sorted_a_ids_idx] for sorted_a_ids_idx in sorted_a_ids_idxs
     ]
-    sorted_video_ids = [
-        int(video_fname.split("/")[-1][6:11]) for video_fname in sorted_video_fnames
-    ]
+    sorted_video_ids = [int(video_fname.split("/")[-1][6:11]) for video_fname in sorted_video_fnames]
     sorted_annotation_ids = [
-        int(annotation_fname.split("/")[-1][11:16])
-        for annotation_fname in sorted_annotation_fnames
+        int(annotation_fname.split("/")[-1][11:16]) for annotation_fname in sorted_annotation_fnames
     ]
     assert sorted_video_ids == sorted_annotation_ids
     # Setup parameters for shard writers.
@@ -88,9 +78,7 @@ def main(video_dir, annotation_dir, output_dir):
     }
     instance_count = 0
     # Create shards of data.
-    with webdataset.ShardWriter(
-        get_shard_pattern(output_dir), **shard_writer_params
-    ) as writer:
+    with webdataset.ShardWriter(get_shard_pattern(output_dir), **shard_writer_params) as writer:
         for index, (video_file, json_file) in enumerate(
             zip(sorted_video_fnames, sorted_annotation_fnames)
         ):

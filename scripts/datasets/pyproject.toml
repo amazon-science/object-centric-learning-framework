@@ -21,3 +21,13 @@ scipy = "<1.8"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 101
+target-version = ["py38"]
+
+[tool.isort]
+profile = "black"
+line_length = 101
+skip_gitignore = true
+remove_redundant_aliases = true
